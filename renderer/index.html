@@ -16,11 +16,26 @@
         </svg>
         <span>Bitty</span>
       </div>
-      <div id="vpnBadge" class="vpn-badge vpn-badge--down">
-        <span class="dot" aria-hidden="true"></span>
-        <span id="vpnBadgeText">VPN not connected</span>
+      <div class="topbar-right">
+        <button id="updateBadge" class="update-badge update-badge--unknown" type="button"
+          title="Click to check for updates now" aria-label="Update status, click to check now">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="updateBadgeText">v0.0.0</span>
+        </button>
+        <div id="vpnBadge" class="vpn-badge vpn-badge--down">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="vpnBadgeText">VPN not connected</span>
+        </div>
       </div>
     </header>
+
+    <div id="updateToast" class="update-toast update-toast--hidden" role="status">
+      <span>An update has downloaded and is ready to install.</span>
+      <button id="updateRestartBtn" class="btn btn-primary btn-small">Restart to update</button>
+      <button id="updateDismissBtn" class="icon-btn" aria-label="Dismiss" title="Dismiss">
+        <svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
 
     <main class="content">
       <section class="panel vpn-panel">
@@ -67,22 +82,24 @@
           <h2>Torrents</h2>
           <button id="openFolderBtn" class="btn btn-ghost">Open download folder</button>
         </div>
-        <table class="torrent-table">
-          <caption class="sr-only">Active torrents and their transfer status</caption>
-          <thead>
-            <tr>
-              <th scope="col">Name</th>
-              <th scope="col">Progress</th>
-              <th scope="col">Down</th>
-              <th scope="col">Up</th>
-              <th scope="col">Peers</th>
-              <th scope="col"></th>
-            </tr>
-          </thead>
-          <tbody id="torrentRows">
-            <tr class="empty-row"><td colspan="6">No torrents yet. Add a magnet link or a .torrent file above.</td></tr>
-          </tbody>
-        </table>
+        <div class="torrent-table-wrap">
+          <table class="torrent-table">
+            <caption class="sr-only">Active torrents and their transfer status</caption>
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Progress</th>
+                <th scope="col">Down</th>
+                <th scope="col">Up</th>
+                <th scope="col">Peers</th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody id="torrentRows">
+              <tr class="empty-row"><td colspan="6">No torrents yet. Add a magnet link or a .torrent file above.</td></tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section class="panel settings-panel">

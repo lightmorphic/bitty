@@ -20,13 +20,15 @@ function runApp() {
   const { Settings } = require('./settings');
   const { VpnController } = require('./vpn-controller');
   const { TorrentController } = require('./torrent-controller');
+  const { UpdaterController } = require('./updater-controller');
   const { parseOvpn } = require('./ovpn-parse');
 
   // Nothing this app does needs GPU-accelerated web content, autofill,
   // or any of Electron's own network features (spellcheck downloads,
   // crash reporter uploads). Turn all of it off: the only outbound
-  // connection this process should ever be party to is the one made by
-  // the sandboxed torrent worker through the VPN tunnel.
+  // connections this process is ever party to are the one made by the
+  // sandboxed torrent worker through the VPN tunnel, and the update
+  // check against GitHub Releases (see updater-controller.js).
   app.commandLine.appendSwitch('disable-http-cache');
   app.setPath('crashDumps', path.join(app.getPath('temp'), 'bitty-crashdumps'));
 
@@ -34,6 +36,7 @@ function runApp() {
   let settings;
   let vpn;
   let torrents;
+  let updater;
 
   function send(channel, payload) {
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
@@ -50,6 +53,16 @@ function runApp() {
       if (status.status === 'connected') onVpnConnected();
     });
     torrents = new TorrentController((list) => send('torrents', list));
+
+    updater = new UpdaterController((status) => send('updater-status', status));
+    if (app.isPackaged) {
+      updater.init(app.getVersion());
+      updater.check();
+    } else {
+      // No update feed in a dev checkout; show a stable "up to date" state
+      // instead of throwing on the missing dev-app-update.yml.
+      updater.status = { state: 'up-to-date', version: app.getVersion(), error: null };
+    }
 
     async function onVpnConnected() {
       const ok = await torrents.connectIfNeeded();
@@ -88,6 +101,7 @@ function runApp() {
     mainWindow.webContents.once('did-finish-load', () => {
       send('settings', settings.get());
       send('vpn-status', vpn.status);
+      send('updater-status', updater.status);
     });
   });
 
@@ -161,11 +175,16 @@ function runApp() {
 
   ipcMain.handle('shell:open-download-dir', () => shell.openPath(settings.data.downloadDir));
 
+  ipcMain.handle('updater:status', () => updater.status);
+  ipcMain.handle('updater:check', () => { updater.check(); return updater.status; });
+  ipcMain.handle('updater:restart', () => updater.restartAndInstall());
+
   let quitting = false;
   app.on('before-quit', async (e) => {
     if (quitting) return;
     e.preventDefault();
     quitting = true;
+    if (updater) updater.stop();
     if (vpn) await vpn.teardown().catch(() => {});
     app.exit(0);
   });

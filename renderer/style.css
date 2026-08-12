@@ -95,24 +95,72 @@ html, body {
 .vpn-badge--up { color: var(--success); background: var(--success-bg); border-color: transparent; }
 .vpn-badge--up .dot { background: var(--success); }
 
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.update-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted-fg);
+  cursor: pointer;
+}
+.update-badge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.update-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted-fg); }
+.update-badge--unknown .dot { background: var(--muted-fg); }
+.update-badge--uptodate .dot { background: var(--success); }
+.update-badge--pending .dot { background: var(--warning); }
+.update-badge--error .dot { background: var(--danger); }
+
+.update-toast {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 24px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: var(--accent-container);
+  color: var(--on-accent-container);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.update-toast--hidden { display: none; }
+.btn-small { padding: 6px 12px; font-size: 0.8125rem; }
+
 .content {
   flex: 1;
-  overflow-y: auto;
-  padding: 24px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 20px 24px;
   display: grid;
-  gap: 20px;
-  grid-template-columns: 1fr;
-  max-width: 980px;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "vpn add"
+    "settings list";
+  max-width: 1180px;
   margin: 0 auto;
   width: 100%;
 }
+
+.vpn-panel { grid-area: vpn; }
+.add-panel { grid-area: add; }
+.settings-panel { grid-area: settings; min-height: 0; overflow: hidden; }
+.list-panel { grid-area: list; min-height: 0; display: flex; flex-direction: column; }
 
 .panel {
   background: var(--panel);
   border: 1px solid var(--panel-border);
   border-radius: var(--panel-radius);
   box-shadow: var(--shadow-panel);
-  padding: 1.5rem;
+  padding: 1.1rem 1.5rem;
 }
 
 .panel h2 {
@@ -188,14 +236,21 @@ input:focus-visible {
 .add-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 .add-row input { flex: 1; min-width: 220px; }
 
-.list-panel-head { display: flex; align-items: center; justify-content: space-between; }
+.list-panel-head { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+
+.torrent-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin-top: 14px;
+}
 
 .torrent-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 14px;
   font-size: 0.9rem;
 }
+.torrent-table thead th { position: sticky; top: 0; background: var(--panel); }
 .torrent-table th {
   text-align: left;
   font-size: 0.75rem;
@@ -236,12 +291,13 @@ input:focus-visible {
 .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .icon-btn.danger-armed { background: var(--danger); border-color: var(--danger); color: #fff; }
 
-.settings-grid { display: grid; gap: 20px; margin-top: 14px; }
+.settings-grid { display: grid; gap: 12px; margin-top: 10px; }
 
 .checkbox-label { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9375rem; }
 .checkbox-label input { width: 16px; height: 16px; }
 
-.throttle-sub { margin-top: 10px; padding-left: 24px; display: flex; flex-direction: column; gap: 6px; }
+.throttle-sub { margin-top: 6px; padding-left: 24px; display: flex; flex-direction: column; gap: 3px; }
+#measuredHint:empty { display: none; margin: 0; }
 .percent-input { display: flex; align-items: center; gap: 8px; max-width: 220px; }
 .percent-input input { width: 100px; }
 
@@ -256,7 +312,17 @@ input:focus-visible {
   overflow-wrap: anywhere;
 }
 
+@media (max-width: 860px) {
+  .content {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    grid-template-areas: none;
+    overflow-y: auto;
+    padding: 16px;
+  }
+  .list-panel { min-height: 320px; }
+}
+
 @media (max-width: 640px) {
   .form-row { grid-template-columns: 1fr; }
-  .content { padding: 16px; }
 }

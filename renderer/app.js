@@ -1,6 +1,12 @@
 (() => {
   const $ = (id) => document.getElementById(id);
 
+  const updateBadge = $('updateBadge');
+  const updateBadgeText = $('updateBadgeText');
+  const updateToast = $('updateToast');
+  const updateRestartBtn = $('updateRestartBtn');
+  const updateDismissBtn = $('updateDismissBtn');
+
   const vpnBadge = $('vpnBadge');
   const vpnBadgeText = $('vpnBadgeText');
   const chooseOvpnBtn = $('chooseOvpnBtn');
@@ -282,9 +288,38 @@
 
   window.bitty.settings.onSettings(applySettings);
 
+  function renderUpdateStatus(status) {
+    updateBadge.classList.remove('update-badge--unknown', 'update-badge--uptodate', 'update-badge--pending', 'update-badge--error');
+    updateBadgeText.textContent = `v${status.version || '0.0.0'}`;
+    if (status.state === 'up-to-date') {
+      updateBadge.classList.add('update-badge--uptodate');
+      updateBadge.title = 'Up to date. Click to check again.';
+    } else if (status.state === 'checking') {
+      updateBadge.classList.add('update-badge--unknown');
+      updateBadge.title = 'Checking for updates…';
+    } else if (status.state === 'downloading' || status.state === 'ready') {
+      updateBadge.classList.add('update-badge--pending');
+      updateBadge.title = status.state === 'ready'
+        ? `Update ${status.newVersion} ready, restart to install`
+        : 'Downloading update…';
+    } else if (status.state === 'error') {
+      updateBadge.classList.add('update-badge--error');
+      updateBadge.title = `Update check failed: ${status.error || 'unknown error'}. Click to retry.`;
+    } else {
+      updateBadge.title = 'Click to check for updates now';
+    }
+    updateToast.classList.toggle('update-toast--hidden', status.state !== 'ready');
+  }
+
+  updateBadge.addEventListener('click', () => window.bitty.updater.check());
+  updateRestartBtn.addEventListener('click', () => window.bitty.updater.restart());
+  updateDismissBtn.addEventListener('click', () => updateToast.classList.add('update-toast--hidden'));
+  window.bitty.updater.onStatus(renderUpdateStatus);
+
   (async () => {
     const s = await window.bitty.settings.get();
     applySettings(s);
     renderVpnBadge(await window.bitty.vpn.status());
+    renderUpdateStatus(await window.bitty.updater.status());
   })();
 })();
