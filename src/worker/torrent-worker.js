@@ -1,7 +1,7 @@
 // Runs inside the network namespace as the invoking user (privileges
 // dropped by the helper via setpriv before exec). This is the only
 // process that ever opens a torrent socket, and it can physically only
-// reach the internet through the VPN tunnel — the namespace's killswitch
+// reach the internet through the VPN tunnel, the namespace's killswitch
 // enforces that, not this file. This file just talks WebTorrent and
 // reports state back to the main (unprivileged, un-namespaced) process.
 
@@ -17,7 +17,7 @@ let downloadDir = process.env.HOME + '/Downloads';
 // Throttling: either a flat manual cap, or "auto" mode which limits to a
 // percentage of the connection's real observed capacity. There's no
 // external speed-test call (that would mean an outbound connection beyond
-// the torrent traffic itself) — capacity is inferred from how fast this
+// the torrent traffic itself), capacity is inferred from how fast this
 // app's own transfers actually run when nothing is holding them back.
 let throttle = { mode: 'auto', manualCapKBps: 0, autoPercent: 50 };
 let measuredCapacityBps = 0;

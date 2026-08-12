@@ -40,7 +40,7 @@ let state = {
   workerProc: null,
   reconnectTimer: null,
   reconnectAttempt: 0,
-  lastConnectArgs: null, // { ovpnText, username, password } — kept in memory only, for auto-reconnect
+  lastConnectArgs: null, // { ovpnText, username, password }, kept in memory only, for auto-reconnect
 };
 
 function log(...a) { process.stderr.write('[bitty-helper] ' + a.join(' ') + '\n'); }
@@ -133,7 +133,11 @@ async function startOpenvpn({ ovpnText, username, password }) {
   fs.writeFileSync(configPath, rewritten, { mode: 0o600 });
   state.vpnConfigPath = configPath;
 
-  const args = ['openvpn', '--config', configPath, '--script-security', '0', '--verb', '3', '--auth-nocache'];
+  // script-security 1 lets OpenVPN run its own built-ins (ip/route) to set
+  // up the tunnel interface, but NOT arbitrary user-defined up/down/plugin
+  // scripts (that needs level 2+), so a malicious .ovpn file still can't
+  // get code execution out of us, even running as root as we do here.
+  const args = ['openvpn', '--config', configPath, '--script-security', '1', '--verb', '3', '--auth-nocache'];
   if (username) {
     const authPath = path.join(tmpDir, 'auth.txt');
     fs.writeFileSync(authPath, `${username}\n${password || ''}\n`, { mode: 0o600 });
@@ -183,9 +187,18 @@ function wipeAuthFile() {
   }
 }
 
+const MAX_RECONNECT_ATTEMPTS = 8; // stop auto-retrying eventually, don't hammer the provider on bad creds
+
 function scheduleReconnect() {
   if (state.reconnectTimer || !state.lastConnectArgs) return;
   state.reconnectAttempt += 1;
+  if (state.reconnectAttempt > MAX_RECONNECT_ATTEMPTS) {
+    state.vpn.status = 'down';
+    state.vpn.lastError = `gave up after ${MAX_RECONNECT_ATTEMPTS} reconnect attempts, check your VPN config/credentials and reconnect manually`;
+    state.lastConnectArgs = null;
+    broadcastStatus();
+    return;
+  }
   const delay = Math.min(30000, 2000 * state.reconnectAttempt);
   state.vpn.status = 'reconnecting';
   broadcastStatus();
@@ -327,7 +340,7 @@ function start(argv) {
   process.on('SIGINT', () => { teardownAll(); process.exit(0); });
   process.on('uncaughtException', (e) => { log('fatal:', e.stack || e.message); teardownAll(); process.exit(1); });
 
-  server = createServer(helperSocket, handleMessage);
+  server = createServer(helperSocket, handleMessage, { uid, gid });
   if (parentPid) watchParent(parentPid);
   log('helper listening on', helperSocket, 'pid', process.pid);
 }

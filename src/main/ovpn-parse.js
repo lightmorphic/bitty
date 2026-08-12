@@ -10,12 +10,16 @@ function parseOvpn(text) {
     if (!line || line.startsWith('#') || line.startsWith(';')) continue;
     const parts = line.split(/\s+/);
     if (parts[0] === 'remote' && parts[1]) {
-      remotes.push({ host: parts[1], port: parts[2] ? Number(parts[2]) : 1194 });
+      const port = parts[2] ? Number(parts[2]) : 1194;
+      if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        throw new Error(`invalid port "${parts[2]}" on line: ${line}`);
+      }
+      remotes.push({ host: parts[1], port });
     } else if (parts[0] === 'proto') {
       proto = parts[1].replace(/-.*/, ''); // udp6 -> udp, tcp-client -> tcp
     }
   }
-  if (!remotes.length) throw new Error('.ovpn file has no "remote" directive — cannot determine VPN server');
+  if (!remotes.length) throw new Error('.ovpn file has no "remote" directive, cannot determine VPN server');
   return { remotes, proto };
 }
 
