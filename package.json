@@ -1,0 +1,42 @@
+{
+  "name": "bitty",
+  "productName": "Bitty",
+  "version": "0.1.0",
+  "description": "VPN-only BitTorrent client. Self-contained AppImage. No traffic ever leaves except through the VPN tunnel.",
+  "main": "src/main/main.js",
+  "private": true,
+  "author": "Charlie",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --linux AppImage"
+  },
+  "dependencies": {
+    "webtorrent": "^2.5.5"
+  },
+  "devDependencies": {
+    "electron": "^43.4.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "cx.charlie.bitty",
+    "files": [
+      "src/**/*",
+      "renderer/**/*",
+      "!renderer/assets/fonts/*.ttf.license"
+    ],
+    "asarUnpack": [
+      "node_modules/webtorrent/**",
+      "node_modules/utp-native/**",
+      "node_modules/fs-native-extensions/**",
+      "node_modules/node-datachannel/**",
+      "node_modules/bufferutil/**",
+      "node_modules/utf-8-validate/**"
+    ],
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Network",
+      "icon": "build/icon.png"
+    }
+  }
+}
