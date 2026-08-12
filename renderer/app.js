@@ -1,11 +1,8 @@
 (() => {
   const $ = (id) => document.getElementById(id);
 
-  const updateBadge = $('updateBadge');
-  const updateBadgeText = $('updateBadgeText');
-  const updateToast = $('updateToast');
-  const updateRestartBtn = $('updateRestartBtn');
-  const updateDismissBtn = $('updateDismissBtn');
+  const updateDot = $('updateDot');
+  const appVersion = $('appVersion');
 
   const vpnBadge = $('vpnBadge');
   const vpnBadgeText = $('vpnBadgeText');
@@ -288,32 +285,33 @@
 
   window.bitty.settings.onSettings(applySettings);
 
+  const RING_CIRCUMFERENCE = 50.27; // 2 * PI * r(8), matches style.css
+  const ringProgressEl = updateDot.querySelector('.ring-progress');
+
+  const UPDATE_TOOLTIPS = {
+    'up-to-date': 'Up to date',
+    available: 'Update available, click to download',
+    downloading: 'Downloading update',
+    ready: 'Click to restart the app',
+    error: "Can't connect to GitHub",
+  };
+
   function renderUpdateStatus(status) {
-    updateBadge.classList.remove('update-badge--unknown', 'update-badge--uptodate', 'update-badge--pending', 'update-badge--error');
-    updateBadgeText.textContent = `v${status.version || '0.0.0'}`;
-    if (status.state === 'up-to-date') {
-      updateBadge.classList.add('update-badge--uptodate');
-      updateBadge.title = 'Up to date. Click to check again.';
-    } else if (status.state === 'checking') {
-      updateBadge.classList.add('update-badge--unknown');
-      updateBadge.title = 'Checking for updates…';
-    } else if (status.state === 'downloading' || status.state === 'ready') {
-      updateBadge.classList.add('update-badge--pending');
-      updateBadge.title = status.state === 'ready'
-        ? `Update ${status.newVersion} ready, restart to install`
-        : 'Downloading update…';
-    } else if (status.state === 'error') {
-      updateBadge.classList.add('update-badge--error');
-      updateBadge.title = `Update check failed: ${status.error || 'unknown error'}. Click to retry.`;
-    } else {
-      updateBadge.title = 'Click to check for updates now';
+    appVersion.textContent = `v${status.version || '0.0.0'}`;
+    updateDot.dataset.state = status.state;
+    updateDot.setAttribute('aria-label', UPDATE_TOOLTIPS[status.state] || 'Checking for updates');
+    updateDot.title = UPDATE_TOOLTIPS[status.state] || '';
+    if (status.state === 'downloading') {
+      const offset = RING_CIRCUMFERENCE * (1 - (status.progress || 0));
+      ringProgressEl.style.strokeDashoffset = String(offset);
     }
-    updateToast.classList.toggle('update-toast--hidden', status.state !== 'ready');
   }
 
-  updateBadge.addEventListener('click', () => window.bitty.updater.check());
-  updateRestartBtn.addEventListener('click', () => window.bitty.updater.restart());
-  updateDismissBtn.addEventListener('click', () => updateToast.classList.add('update-toast--hidden'));
+  updateDot.addEventListener('click', () => {
+    const state = updateDot.dataset.state;
+    if (state === 'available') window.bitty.updater.download();
+    else if (state === 'ready') window.bitty.updater.restart();
+  });
   window.bitty.updater.onStatus(renderUpdateStatus);
 
   (async () => {

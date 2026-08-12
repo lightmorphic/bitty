@@ -63,7 +63,7 @@ function runApp() {
     } else {
       // No update feed in a dev checkout; show a stable "up to date" state
       // instead of throwing on the missing dev-app-update.yml.
-      updater.status = { state: 'up-to-date', version: app.getVersion(), error: null };
+      updater.status = { state: 'up-to-date', version: app.getVersion(), newVersion: null, progress: 0, error: null };
     }
 
     async function onVpnConnected() {
@@ -178,7 +178,7 @@ function runApp() {
   ipcMain.handle('shell:open-download-dir', () => shell.openPath(settings.data.downloadDir));
 
   ipcMain.handle('updater:status', () => updater.status);
-  ipcMain.handle('updater:check', () => { updater.check(); return updater.status; });
+  ipcMain.handle('updater:download', () => updater.download());
   ipcMain.handle('updater:restart', () => updater.restartAndInstall());
 
   let quitting = false;
