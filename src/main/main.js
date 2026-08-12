@@ -3,7 +3,7 @@
 //  1. Normal launch (double-click the AppImage): full Electron GUI app.
 //  2. `--bitty-helper` (spawned by us, via pkexec, with
 //     ELECTRON_RUN_AS_NODE=1): no GUI at all, just the privileged
-//     network/VPN helper. See src/helper/helper.js — nothing Electron-y
+//     network/VPN helper. See src/helper/helper.js, nothing Electron-y
 //     is imported on this path.
 
 if (process.argv.includes('--bitty-helper')) {
@@ -24,7 +24,7 @@ function runApp() {
 
   // Nothing this app does needs GPU-accelerated web content, autofill,
   // or any of Electron's own network features (spellcheck downloads,
-  // crash reporter uploads). Turn all of it off — the only outbound
+  // crash reporter uploads). Turn all of it off: the only outbound
   // connection this process should ever be party to is the one made by
   // the sandboxed torrent worker through the VPN tunnel.
   app.commandLine.appendSwitch('disable-http-cache');

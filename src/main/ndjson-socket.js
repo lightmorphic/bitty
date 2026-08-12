@@ -4,7 +4,11 @@ const net = require('net');
 // unix domain socket. Used for main<->helper and main<->worker IPC, since
 // none of these processes share an Electron renderer context.
 
-function createServer(socketPath, onMessage) {
+// chownTo: {uid, gid}, needed when the server runs as root (the helper,
+// via pkexec) so the unprivileged main process can still connect to the
+// socket it creates. Without this the file is root:root mode 0600 and the
+// real user gets EACCES on connect.
+function createServer(socketPath, onMessage, chownTo) {
   const fs = require('fs');
   try { fs.unlinkSync(socketPath); } catch (_) {}
   const server = net.createServer((conn) => {
@@ -24,8 +28,10 @@ function createServer(socketPath, onMessage) {
       }
     });
   });
-  server.listen(socketPath);
-  fs.chmodSync(socketPath, 0o600);
+  server.listen(socketPath, () => {
+    if (chownTo) fs.chownSync(socketPath, chownTo.uid, chownTo.gid);
+    fs.chmodSync(socketPath, 0o600);
+  });
   return server;
 }
 
