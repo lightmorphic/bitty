@@ -17,6 +17,15 @@ A VPN-only BitTorrent client, packaged as a single self-contained Linux AppImage
 - A single speed cap for the whole app (not per-torrent), either a manual number you set, or an
   automatic mode that limits itself to a percentage (default 50%, configurable) of your measured
   connection speed.
+- Auto-update: the dot next to the version number in the top right is green when you're up to
+  date, yellow while an update is downloading or ready, and red if a check failed. Click it to
+  check right now; it also checks automatically every 30 minutes. When an update finishes
+  downloading, a bar appears with a "Restart to update" button.
+
+**The one exception to VPN-only networking:** checking GitHub for a new version is a direct call
+made by the main app window, not through the VPN or the isolated namespace, the same as any
+desktop app's update checker. It never touches your torrent traffic or the namespace. The torrent
+engine itself remains fully VPN-only as described above.
 
 ## Why it needs a password prompt (`pkexec`)
 
@@ -27,8 +36,8 @@ small networking helper process runs elevated, and only for as long as the app i
 ## Installing / running
 
 ```bash
-chmod +x Bitty-0.1.0.AppImage
-./Bitty-0.1.0.AppImage
+chmod +x Bitty-0.2.0.AppImage
+./Bitty-0.2.0.AppImage
 ```
 
 No install step, no system-wide changes. Needs these already on your system (all standard on any

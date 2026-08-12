@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.0
+
+- Auto-update via GitHub Releases: a status dot next to the version number (green up to date,
+  yellow update pending, red check failed), checks every 30 minutes plus on click, downloads
+  automatically, and prompts to restart once ready.
+- Repo made public so update checks need no embedded credentials.
+- Redesigned the window as a two-column layout that fits on one screen at the default size, no
+  page-level scrolling; the torrent list scrolls internally once it has more entries than fit.
+- Fixed the privileged helper's control socket being unreachable by the main process (root-owned,
+  mode 0600); it's now chowned to the invoking user.
+- OpenVPN now runs with `--script-security 1` instead of `0`, fixing tunnel interface/route setup
+  while still blocking arbitrary up/down scripts from a malicious `.ovpn` file.
+- `.ovpn` files with an invalid port are now rejected at upload instead of producing a broken
+  firewall rule.
+- Auto-reconnect now gives up after 8 attempts instead of retrying forever.
+
 ## 0.1.0
 
 Initial build.
