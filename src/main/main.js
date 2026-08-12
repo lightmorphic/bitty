@@ -22,6 +22,7 @@ function runApp() {
   const { TorrentController } = require('./torrent-controller');
   const { UpdaterController } = require('./updater-controller');
   const { parseOvpn } = require('./ovpn-parse');
+  const { ensureExtractedRuntime } = require('./runtime-extract');
 
   // Nothing this app does needs GPU-accelerated web content, autofill,
   // or any of Electron's own network features (spellcheck downloads,
@@ -48,10 +49,11 @@ function runApp() {
       settings.update({ downloadDir: path.join(app.getPath('home'), 'Downloads') });
     }
 
+    const runtimePaths = ensureExtractedRuntime(app);
     vpn = new VpnController((status) => {
       send('vpn-status', status);
       if (status.status === 'connected') onVpnConnected();
-    });
+    }, runtimePaths);
     torrents = new TorrentController((list) => send('torrents', list));
 
     updater = new UpdaterController((status) => send('updater-status', status));
