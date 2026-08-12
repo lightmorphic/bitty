@@ -7,6 +7,11 @@
   even via `pkexec`, so the privileged helper could never actually start. The app now extracts
   its own contents to a normal, root-readable cache directory before elevating, and launches the
   helper from there.
+- Replaced the version pill and separate restart banner with the standard single-dot update
+  widget: app name and version link out to the app's website, followed by one dot that shows
+  up-to-date (green), update available (amber, click to download), downloading (progress ring),
+  ready to restart (green, click to restart), or can't reach GitHub (red). Downloads no longer
+  start automatically, only when the dot is clicked.
 
 ## 0.2.0
 
