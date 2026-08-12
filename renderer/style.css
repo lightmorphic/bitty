@@ -68,6 +68,8 @@ html, body {
   border-bottom: 1px solid var(--border);
 }
 
+.app-id { display: flex; align-items: center; gap: 10px; }
+
 .brand {
   display: flex;
   align-items: center;
@@ -75,6 +77,14 @@ html, body {
   font-weight: 700;
   font-size: 1.1rem;
   letter-spacing: -0.01em;
+  color: var(--fg);
+  text-decoration: none;
+}
+.brand:hover .brand-name { text-decoration: underline; }
+.brand-version {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--muted-fg);
 }
 
 .vpn-badge {
@@ -97,41 +107,59 @@ html, body {
 
 .topbar-right { display: flex; align-items: center; gap: 10px; }
 
-.update-badge {
+/* Update status dot: Charlie's standard cross-app widget. Exact
+   Lightmorphic palette hues, not the text-shade tokens used elsewhere. */
+.update-dot {
+  --dot-green: #4BAE4F;
+  --dot-amber: #FFC006;
+  --dot-red: #F34236;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font: inherit;
-  font-weight: 600;
-  font-size: 0.8125rem;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--muted-fg);
-  cursor: pointer;
+  justify-content: center;
+  cursor: default;
+  border-radius: 50%;
 }
-.update-badge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.update-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted-fg); }
-.update-badge--unknown .dot { background: var(--muted-fg); }
-.update-badge--uptodate .dot { background: var(--success); }
-.update-badge--pending .dot { background: var(--warning); }
-.update-badge--error .dot { background: var(--danger); }
+.update-dot[data-state="available"],
+.update-dot[data-state="ready"] { cursor: pointer; }
+.update-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.update-toast {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 0 24px;
-  padding: 12px 16px;
-  border-radius: var(--radius);
-  background: var(--accent-container);
-  color: var(--on-accent-container);
-  font-size: 0.9rem;
-  font-weight: 600;
+.update-dot .ring-track,
+.update-dot .ring-progress { fill: none; stroke-width: 1.6; display: none; }
+.update-dot .ring-track { stroke: var(--border); }
+.update-dot .ring-progress {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 10px 10px;
+  stroke-dasharray: 50.27; /* 2 * PI * r(8) */
+  stroke-dashoffset: 50.27;
+  transition: stroke-dashoffset 0.15s linear;
 }
-.update-toast--hidden { display: none; }
-.btn-small { padding: 6px 12px; font-size: 0.8125rem; }
+.update-dot[data-state="downloading"] .ring-track,
+.update-dot[data-state="downloading"] .ring-progress { display: block; }
+.update-dot[data-state="downloading"] .dot-fill { display: none; }
+
+.update-dot .dot-fill { fill: var(--muted-fg); }
+.update-dot[data-state="up-to-date"] .dot-fill { fill: var(--dot-green); }
+.update-dot[data-state="available"] .dot-fill { fill: var(--dot-amber); }
+.update-dot[data-state="ready"] .dot-fill { fill: var(--dot-green); }
+.update-dot[data-state="error"] .dot-fill { fill: var(--dot-red); }
+
+.update-dot .dot-icon {
+  display: none;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.update-dot[data-state="available"] .icon-download { display: block; }
+.update-dot[data-state="ready"] .icon-restart { display: block; }
 
 .content {
   flex: 1;
