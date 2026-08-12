@@ -9,7 +9,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --linux AppImage"
+    "build": "electron-builder --linux AppImage",
+    "release": "bash scripts/release.sh"
   },
   "dependencies": {
     "webtorrent": "^2.5.5",
