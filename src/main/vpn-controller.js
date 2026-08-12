@@ -1,11 +1,11 @@
 const { spawn } = require('child_process');
-const path = require('path');
 const paths = require('./paths');
 const { Client } = require('./ndjson-socket');
 
 class VpnController {
-  constructor(onStatus) {
+  constructor(onStatus, runtimePaths) {
     this.onStatus = onStatus;
+    this.runtimePaths = runtimePaths;
     this.helperProc = null;
     this.client = null;
     this.starting = null;
@@ -24,11 +24,10 @@ class VpnController {
 
   _launchHelper() {
     return new Promise((resolve, reject) => {
-      const mainJs = path.join(__dirname, 'main.js');
-      const workerScript = path.join(__dirname, '..', 'worker', 'torrent-worker.js');
+      const { execPath, mainJsPath, workerScriptPath } = this.runtimePaths;
       const args = [
         '/usr/bin/env', 'ELECTRON_RUN_AS_NODE=1',
-        process.execPath, mainJs,
+        execPath, mainJsPath,
         '--bitty-helper',
         `--parent-pid=${process.pid}`,
         `--uid=${process.getuid()}`,
@@ -36,7 +35,7 @@ class VpnController {
         `--home=${process.env.HOME}`,
         `--helper-socket=${paths.helperSocket}`,
         `--worker-socket=${paths.workerSocket}`,
-        `--worker-script=${workerScript}`,
+        `--worker-script=${workerScriptPath}`,
       ];
       const proc = spawn('pkexec', args, { stdio: ['ignore', 'inherit', 'inherit'] });
       this.helperProc = proc;

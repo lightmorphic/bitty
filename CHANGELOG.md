@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1
+
+- Fixed VPN connect always failing with "authorization declined or failed, exit code 126" when
+  running from the packaged AppImage. Root can't read into the AppImage's private FUSE mount
+  even via `pkexec`, so the privileged helper could never actually start. The app now extracts
+  its own contents to a normal, root-readable cache directory before elevating, and launches the
+  helper from there.
+
 ## 0.2.0
 
 - Auto-update via GitHub Releases: a status dot next to the version number (green up to date,
