@@ -83,7 +83,19 @@ Debian/Ubuntu-family desktop): `openvpn`, `iproute2` (`ip`), `nftables` (`nft`),
 
 ```bash
 npm install
-npm run build     # produces dist/Bitty-<version>.AppImage
+npm run build     # produces dist/Bitty-<version>.AppImage, local only, no publish
+```
+
+## Cutting a release
+
+Every GitHub release carries two copies of the AppImage: `Bitty-<version>.AppImage` (pinned,
+also what the in-app updater tracks) and `Bitty.AppImage` (unversioned, always the newest
+release, for a stable download link). To cut one:
+
+```bash
+npm version <patch|minor|major>   # bumps package.json, add a matching CHANGELOG.md entry
+git push && git push --tags
+npm run release                    # builds, publishes, and uploads both AppImage copies
 ```
 
 ## Known limitation
