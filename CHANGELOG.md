@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.2
+
+- Fixed the Settings panel silently clipping its bottom fields, the manual speed cap was
+  invisible unless you manually resized the window taller, with no indication it was there.
+  Reworked the whole layout into three columns (VPN + Add torrent stacked, Settings, Torrents)
+  instead of two, so every static panel gets enough room to show all of its content at the
+  default window size with no scrollbar anywhere. The torrent list keeps its own internal
+  scroll once it has more entries than fit, that's an unbounded list, not hidden settings.
+
 ## 0.2.1
 
 - Fixed VPN connect always failing with "authorization declined or failed, exit code 126" when

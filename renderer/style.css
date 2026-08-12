@@ -164,23 +164,23 @@ html, body {
 .content {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   padding: 20px 24px;
   display: grid;
   gap: 16px;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 400px 380px 1fr;
   grid-template-rows: auto 1fr;
   grid-template-areas:
-    "vpn add"
-    "settings list";
-  max-width: 1180px;
+    "vpn settings list"
+    "add settings list";
+  max-width: 1560px;
   margin: 0 auto;
   width: 100%;
 }
 
 .vpn-panel { grid-area: vpn; }
 .add-panel { grid-area: add; }
-.settings-panel { grid-area: settings; min-height: 0; overflow: hidden; }
+.settings-panel { grid-area: settings; }
 .list-panel { grid-area: list; min-height: 0; display: flex; flex-direction: column; }
 
 .panel {
@@ -340,7 +340,7 @@ input:focus-visible {
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1080px) {
   .content {
     grid-template-columns: 1fr;
     grid-template-rows: none;

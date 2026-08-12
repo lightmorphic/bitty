@@ -79,10 +79,10 @@ function runApp() {
     }
 
     mainWindow = new BrowserWindow({
-      width: 980,
-      height: 720,
-      minWidth: 720,
-      minHeight: 480,
+      width: 1440,
+      height: 820,
+      minWidth: 980,
+      minHeight: 600,
       autoHideMenuBar: true,
       webPreferences: {
         preload: path.join(__dirname, '..', 'preload', 'preload.js'),
