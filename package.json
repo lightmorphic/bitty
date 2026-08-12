@@ -6,7 +6,7 @@
   "main": "src/main/main.js",
   "private": true,
   "author": "Charlie",
-  "license": "UNLICENSED",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --linux AppImage",
