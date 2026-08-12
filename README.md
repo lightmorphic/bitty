@@ -98,6 +98,10 @@ git push && git push --tags
 npm run release                    # builds, publishes, and uploads both AppImage copies
 ```
 
+## License
+
+GPLv3. See [LICENSE](LICENSE).
+
 ## Known limitation
 
 WebTorrent's tracker-handling dependency (`ip`) has an unpatched advisory
