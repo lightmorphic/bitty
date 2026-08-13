@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.2
+
+- Fixed the torrent engine crashing on startup every time (`ERR_REQUIRE_ASYNC_MODULE`), which
+  meant torrenting never actually worked even with the VPN connected, "connect the VPN first"
+  showed even when it already was. `webtorrent` is a pure ESM package; loading it via `require()`
+  broke under the Node version bundled with the current Electron. Switched to dynamic `import()`.
+
 ## 0.3.1
 
 - Error messages (adding a magnet link before the VPN is connected, VPN config problems, etc.)
