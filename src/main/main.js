@@ -131,7 +131,16 @@ function runApp() {
     });
 
     tray = new SniTray({ getWindow: () => mainWindow, quitApp: () => app.quit() });
-    tray.init({ themePath: path.join(__dirname, '..', '..', 'renderer', 'assets', 'tray-theme') });
+    // The desktop's tray host reads IconThemePath itself, over D-Bus, as a
+    // completely separate process from this one. It has no idea what an
+    // asar archive is and can't see inside app.asar, only real files on
+    // disk, so this has to point at the unpacked copy (see asarUnpack in
+    // package.json), not the path Electron's own asar-aware fs shim would
+    // resolve to.
+    const trayThemePath = app.isPackaged
+      ? path.join(process.resourcesPath, 'app.asar.unpacked', 'renderer', 'assets', 'tray-theme')
+      : path.join(__dirname, '..', '..', 'renderer', 'assets', 'tray-theme');
+    tray.init({ themePath: trayThemePath });
     tray.setIconStyle(settings.data.trayIconStyle);
     tray.setVpnStatus(vpn.status);
 
