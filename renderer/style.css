@@ -97,19 +97,18 @@ html, body {
   --dot-green: #4BAE4F;
   --dot-amber: #FFC006;
   --dot-red: #F34236;
-  width: 22px;
-  height: 22px;
+  width: 33px;
+  height: 33px;
   padding: 0;
   border: none;
   background: transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: default;
+  cursor: pointer;
   border-radius: 50%;
 }
-.update-dot[data-state="available"],
-.update-dot[data-state="ready"] { cursor: pointer; }
+.update-dot[data-state="downloading"] { cursor: default; }
 .update-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .update-dot .ring-track,
@@ -211,7 +210,7 @@ html, body {
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 0.875rem; font-weight: 600; }
 
-input[type="text"], input[type="password"], input[type="number"] {
+input[type="text"], input[type="password"], input[type="number"], select {
   display: block;
   width: 100%;
   box-sizing: border-box;
@@ -222,7 +221,7 @@ input[type="text"], input[type="password"], input[type="number"] {
   color: var(--fg);
   font: inherit;
 }
-input:focus-visible {
+input:focus-visible, select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

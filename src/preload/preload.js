@@ -36,6 +36,7 @@ contextBridge.exposeInMainWorld('bitty', {
   openDownloadDir: () => invoke('shell:open-download-dir'),
   updater: {
     status: () => invoke('updater:status'),
+    check: () => invoke('updater:check'),
     download: () => invoke('updater:download'),
     restart: () => invoke('updater:restart'),
     onStatus: (fn) => on('updater-status', fn),

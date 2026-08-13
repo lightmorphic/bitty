@@ -6,6 +6,7 @@ const DEFAULTS = {
   speedCapKBps: 0, // 0 = unlimited
   autoThrottleEnabled: true,
   autoThrottlePercent: 50,
+  trayIconStyle: 'color', // 'color' | 'mono'
   vpn: { hasConfig: false, filename: null, username: null },
 };
 
@@ -36,7 +37,7 @@ class Settings {
   }
 
   update(patch) {
-    for (const key of ['downloadDir', 'speedCapKBps', 'autoThrottleEnabled', 'autoThrottlePercent']) {
+    for (const key of ['downloadDir', 'speedCapKBps', 'autoThrottleEnabled', 'autoThrottlePercent', 'trayIconStyle']) {
       if (patch[key] !== undefined) this.data[key] = patch[key];
     }
     this._save();
