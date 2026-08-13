@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.3
+
+- Fixed the torrent worker crashing every time an actual magnet link or torrent was added
+  (`ERR_INVALID_ARG_TYPE` in `arr2hex`). `webtorrent` 2.x expected its `parse-torrent`
+  dependency to hand back the info hash as a raw byte buffer, but the resolved version of
+  `parse-torrent` had since changed to return it as a hex string instead, an upstream
+  incompatibility, not something introduced here. Upgraded to `webtorrent` 3.x, which is built
+  against the current `parse-torrent` API. Verified directly: adding a real public magnet link
+  no longer crashes the worker.
+
 ## 0.3.2
 
 - Fixed the torrent engine crashing on startup every time (`ERR_REQUIRE_ASYNC_MODULE`), which
