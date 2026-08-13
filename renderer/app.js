@@ -39,6 +39,15 @@
   let currentSettings = null;
   let hasConfig = false;
 
+  // Electron's IPC rejections stringify as "Error invoking remote method
+  // 'x': Error: <actual message>", strip that down to just the message
+  // an end user should see.
+  function cleanErrorMessage(e) {
+    const raw = (e && e.message) || String(e);
+    const match = raw.match(/Error:\s*(.+)$/s);
+    return match ? match[1].trim() : raw;
+  }
+
   function fmtSpeed(bps) {
     if (!bps || bps <= 0) return '0 KB/s';
     const kb = bps / 1024;
@@ -94,7 +103,7 @@
       pendingOvpn = picked;
       renderVpnConfigState();
     } catch (e) {
-      vpnError.textContent = e.message;
+      vpnError.textContent = cleanErrorMessage(e);
     }
   });
 
@@ -114,7 +123,7 @@
       renderVpnConfigState();
       renderVpnBadge(await window.bitty.vpn.status());
     } catch (e) {
-      vpnError.textContent = e.message;
+      vpnError.textContent = cleanErrorMessage(e);
     }
   });
 
@@ -134,7 +143,7 @@
     try {
       await window.bitty.vpn.connect();
     } catch (e) {
-      vpnError.textContent = e.message;
+      vpnError.textContent = cleanErrorMessage(e);
       connectBtn.disabled = false;
     }
   });
@@ -153,7 +162,7 @@
       await window.bitty.torrents.addMagnet(magnet);
       magnetInput.value = '';
     } catch (e) {
-      torrentError.textContent = e.message;
+      torrentError.textContent = cleanErrorMessage(e);
     }
   });
   magnetInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addMagnetBtn.click(); });
@@ -170,7 +179,7 @@
       try {
         await window.bitty.torrents.addFile(file.name, base64);
       } catch (e) {
-        torrentError.textContent = e.message;
+        torrentError.textContent = cleanErrorMessage(e);
       }
     });
     input.click();
