@@ -12,6 +12,12 @@ function createServer(socketPath, onMessage, chownTo) {
   const fs = require('fs');
   try { fs.unlinkSync(socketPath); } catch (_) {}
   const server = net.createServer((conn) => {
+    // A client disconnecting abruptly (renderer reload, crash, or just a
+    // short-lived probe connection) fires 'error' (e.g. ECONNRESET) on the
+    // socket. Without a handler that's an uncaught exception that takes
+    // the whole process down, including the VPN tunnel or in-progress
+    // torrents depending on which process this server is running in.
+    conn.on('error', () => {});
     let buf = '';
     conn.on('data', (chunk) => {
       buf += chunk.toString('utf8');

@@ -48,6 +48,19 @@ function log(...a) { process.stderr.write('[bitty-helper] ' + a.join(' ') + '\n'
 function setupNetwork() {
   if (state.networkUp) return;
   sh('ip', ['netns', 'add', netnsName]);
+
+  // The namespace does NOT inherit a working resolver just because the
+  // host has one. Whatever the host's own /etc/resolv.conf points at
+  // (systemd-resolved's 127.0.0.53, Tailscale's MagicDNS at
+  // 100.100.100.100, a LAN router, anything loopback-scoped or tied to an
+  // interface that doesn't exist in here) is unreachable from inside this
+  // namespace, silently breaking every hostname-based tracker/DHT lookup.
+  // `ip netns exec` bind-mounts /etc/netns/<name>/resolv.conf over
+  // /etc/resolv.conf for anything run inside it, so give it its own,
+  // independent of whatever the host happens to be using.
+  fs.mkdirSync(`/etc/netns/${netnsName}`, { recursive: true });
+  fs.writeFileSync(`/etc/netns/${netnsName}/resolv.conf`, 'nameserver 1.1.1.1\nnameserver 8.8.8.8\n');
+
   sh('ip', ['link', 'add', hostVeth, 'type', 'veth', 'peer', 'name', nsVeth]);
   sh('ip', ['link', 'set', nsVeth, 'netns', netnsName]);
   sh('ip', ['addr', 'add', `${hostAddr}/24`, 'dev', hostVeth]);
@@ -253,6 +266,7 @@ function stopWorker() {
 function teardownNetwork() {
   sh('ip', ['link', 'del', hostVeth]);
   sh('ip', ['netns', 'del', netnsName]);
+  fs.rmSync(`/etc/netns/${netnsName}`, { recursive: true, force: true });
   sh('iptables', ['-t', 'nat', '-D', 'POSTROUTING', '-s', subnetCidr, '!', '-o', hostVeth, '-j', 'MASQUERADE']);
   sh('iptables', ['-D', 'FORWARD', '-i', hostVeth, '-j', 'ACCEPT']);
   sh('iptables', ['-D', 'FORWARD', '-o', hostVeth, '-j', 'ACCEPT']);

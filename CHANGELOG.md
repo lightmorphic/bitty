@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.1
+
+- Fixed DNS resolution being completely broken inside the torrent engine's isolated namespace,
+  which silently failed every tracker and DHT hostname lookup, so torrents could show real
+  seed/peer counts elsewhere while finding zero here. The namespace was relying on whatever the
+  host's `/etc/resolv.conf` pointed at, which is often a loopback-scoped resolver (systemd-resolved,
+  Tailscale MagicDNS, etc.) unreachable from inside an isolated namespace. It now gets its own,
+  independent DNS servers.
+- Fixed adding a magnet link or `.torrent` file often timing out ("timeout waiting for
+  add-magnet") even though the torrent was actually added, the magnet input stayed filled and a
+  red error appeared even on success. The worker was waiting for full metadata (which can take a
+  long time) before replying; it now replies as soon as the torrent is parsed.
+- Fixed the VPN helper and torrent worker crashing outright on any abrupt client disconnect
+  (`ECONNRESET`) due to a missing error handler on the control socket, found while testing the
+  above.
+
 ## 0.4.0
 
 - Added minimize to tray. Closing the window now hides it instead of quitting, so the VPN
