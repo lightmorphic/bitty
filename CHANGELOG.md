@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.2
+
+- Fixed the tray icon's right-click menu showing as a correctly-sized but completely blank grey
+  box, no text. The menu structure (item count, layout) was right, but `GetGroupProperties` — a
+  second method some menu clients call separately from `GetLayout` to fetch each item's actual
+  label — always returned nothing. Cinnamon's tray menu turned out to be one of the clients that
+  relies on it. It now returns the real label/enabled/visible data for every item, from the same
+  source `GetLayout` uses, so the menu renders correctly regardless of which method a given
+  desktop's menu client prefers.
+
 ## 0.7.1
 
 - Actually fixed the tray icon this time. 0.7.0's rewrite fixed the D-Bus side but the icon theme

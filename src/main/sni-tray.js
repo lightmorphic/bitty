@@ -123,7 +123,7 @@ class SniTray {
       TextDirection: 'ltr',
       Status: 'normal',
       GetLayout: (parentId, depth, propertyNames) => this._menuLayout(),
-      GetGroupProperties: () => [],
+      GetGroupProperties: (ids) => this._menuGroupProperties(ids),
       Event: (id, eventId) => {
         if (eventId !== 'clicked') return null;
         if (id === MENU_ID_TOGGLE) this.toggleWindow();
@@ -155,18 +155,60 @@ class SniTray {
     });
   }
 
-  _menuLayout() {
+  // Item properties live here, shared between GetLayout (which embeds them
+  // inline for clients that read the tree in one shot) and GetGroupProperties
+  // (which some dbusmenu clients call separately to populate/refresh items
+  // after reading the tree's shape from GetLayout). Returning [] from
+  // GetGroupProperties unconditionally, as an earlier version of this file
+  // did, is exactly what produced a correctly-sized but completely blank
+  // menu: the client got the right item count and geometry from GetLayout
+  // but then asked GetGroupProperties for the actual label text and got
+  // nothing back.
+  _menuItems() {
     const visible = !!this.getWindow() && this.getWindow().isVisible();
+    return [
+      {
+        id: MENU_ID_TOGGLE,
+        props: [
+          ['label', ['s', visible ? 'Hide Bitty' : 'Show Bitty']],
+          ['enabled', ['b', true]],
+          ['visible', ['b', true]],
+        ],
+      },
+      {
+        id: 99,
+        props: [
+          ['type', ['s', 'separator']],
+          ['enabled', ['b', true]],
+          ['visible', ['b', true]],
+        ],
+      },
+      {
+        id: MENU_ID_QUIT,
+        props: [
+          ['label', ['s', 'Quit Bitty']],
+          ['enabled', ['b', true]],
+          ['visible', ['b', true]],
+        ],
+      },
+    ];
+  }
+
+  _menuLayout() {
+    const items = this._menuItems();
     const root = [
       0,
       [['children-display', ['s', 'submenu']]],
-      [
-        ['(ia{sv}av)', [MENU_ID_TOGGLE, [['label', ['s', visible ? 'Hide Bitty' : 'Show Bitty']]], []]],
-        ['(ia{sv}av)', [99, [['type', ['s', 'separator']]], []]],
-        ['(ia{sv}av)', [MENU_ID_QUIT, [['label', ['s', 'Quit Bitty']]], []]],
-      ],
+      items.map((item) => ['(ia{sv}av)', [item.id, item.props, []]]),
     ];
     return [this.menuRevision, root];
+  }
+
+  _menuGroupProperties(ids) {
+    const items = this._menuItems();
+    const byId = new Map(items.map((i) => [i.id, i.props]));
+    const wantedIds = Array.isArray(ids) && ids.length ? ids : items.map((i) => i.id);
+    return wantedIds.filter((id) => byId.has(id)).map((id) => [id, byId.get(id)]);
   }
 
   refreshMenu() {
