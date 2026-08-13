@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1
+
+- Error messages (adding a magnet link before the VPN is connected, VPN config problems, etc.)
+  now show as plain text instead of Electron's raw "Error invoking remote method..." wrapper.
+
 ## 0.3.0
 
 - Redesigned the whole interface: a fixed sidebar (VPN status, VPN configuration, Settings)
