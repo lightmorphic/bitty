@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.0
+
+- Fixed a serious bug: the app had no single-instance lock, so relaunching it while already
+  running (easy to do by accident now that closing minimizes to tray instead of quitting) spawned
+  a full duplicate instance, its own window, its own tray icon, and its own VPN helper fighting
+  the first one over the same namespace and control sockets. That's what caused stuck,
+  unresponsive tray icons. Launching it again now just brings the existing window forward.
+- VPN now connects automatically on launch if a config is already saved, instead of waiting for a
+  manual Connect click. The `pkexec` password prompt still appears, that's unavoidable, but it's
+  the only step now.
+- Active torrents are now remembered and resume automatically. Previously the list was only ever
+  in memory, so it reset to empty every time the worker restarted (which happens on every VPN
+  reconnect, and definitely on every app relaunch), even though the VPN itself reconnected fine.
+- Added a genuine "delete torrent and files" action (the danger-armed confirm pattern, a second
+  deliberate click) alongside the existing "remove from list" action, which now keeps downloaded
+  files and no longer needs a confirm click since it isn't destructive.
+
 ## 0.4.2
 
 - Icon buttons (torrent row pause/remove, settings close) are now circular and borderless

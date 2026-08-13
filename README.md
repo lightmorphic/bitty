@@ -4,8 +4,12 @@ A VPN-only BitTorrent client, packaged as a single self-contained Linux AppImage
 
 ## What it does
 
-- Add torrents by magnet link or `.torrent` file.
+- Add torrents by magnet link or `.torrent` file. Each one can be paused/resumed, removed from
+  the list (keeps the downloaded files), or deleted along with its files (a second, deliberate
+  click to confirm, since that one's destructive). The active list is remembered and resumes
+  automatically the next time you open the app or the VPN reconnects.
 - Upload an OpenVPN `.ovpn` config (from PIA or any other provider) and it connects through that.
+  Connects automatically on launch once a config is saved, no need to click Connect every time.
 - **Torrenting is physically impossible without the VPN.** The torrent engine runs inside an
   isolated network namespace that this app creates and destroys itself. That namespace has a
   firewall rule set (a "kill switch") that only allows two things out: the VPN tunnel itself, and
@@ -41,13 +45,16 @@ small networking helper process runs elevated, and only for as long as the app i
 ## Installing / running
 
 ```bash
-chmod +x Bitty-0.2.0.AppImage
-./Bitty-0.2.0.AppImage
+chmod +x Bitty-0.5.0.AppImage
+./Bitty-0.5.0.AppImage
 ```
 
 No install step, no system-wide changes. Needs these already on your system (all standard on any
 Debian/Ubuntu-family desktop): `openvpn`, `iproute2` (`ip`), `nftables` (`nft`), `iptables`,
 `polkit` (`pkexec`), `util-linux` (`setpriv`).
+
+Only one instance runs at a time. Launching it again while it's already open (including hidden in
+the tray) just brings the existing window forward rather than starting a second copy.
 
 ## First run
 
@@ -56,7 +63,11 @@ Debian/Ubuntu-family desktop): `openvpn`, `iproute2` (`ip`), `nftables` (`nft`),
    using your OS's own keyring (via Electron's `safeStorage`), not as plain text.
 3. Click "Connect". You'll get a password prompt from your desktop. That's for the one-time setup
    of the network namespace and firewall, described above.
-4. Once the badge at the top says "VPN connected", add a torrent.
+4. Once the sidebar status card says "VPN connected", add a torrent.
+
+On every launch after that, Bitty connects automatically if a config is already saved (you'll
+still get the password prompt each time, that's unavoidable). Active torrents are remembered and
+resume automatically too, no need to re-add them after closing and reopening the app.
 
 ## Settings
 

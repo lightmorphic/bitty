@@ -192,11 +192,12 @@
       pause: '<path d="M6 4h3v12H6zM11 4h3v12h-3z" fill="currentColor"/>',
       resume: '<path d="M6 4l9 6-9 6V4z" fill="currentColor"/>',
       remove: '<path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+      trash: '<path d="M5 6.5h10M8 6.5V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5M8.5 9.5v5M11.5 9.5v5M6 6.5l.7 8.2a1 1 0 0 0 1 .8h4.6a1 1 0 0 0 1-.8l.7-8.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
     };
     return `<svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true">${icons[kind]}</svg>`;
   }
 
-  let removeArmed = null; // infoHash currently showing the confirm state
+  let deleteArmed = null; // infoHash currently showing the "delete files too" confirm state
 
   const EMPTY_STATE_HTML = `<tr class="empty-row"><td colspan="6">
     <div class="empty-state">
@@ -233,9 +234,13 @@
               aria-label="${t.paused ? 'Resume' : 'Pause'} ${escapeHtml(t.name)}" title="${t.paused ? 'Resume' : 'Pause'}">
               ${svgIcon(t.paused ? 'resume' : 'pause')}
             </button>
-            <button class="icon-btn ${removeArmed === t.infoHash ? 'danger-armed' : ''}" data-action="remove" data-hash="${t.infoHash}"
-              aria-label="Remove ${escapeHtml(t.name)}" title="Remove">
-              ${removeArmed === t.infoHash ? '✓' : svgIcon('remove')}
+            <button class="icon-btn" data-action="remove" data-hash="${t.infoHash}"
+              aria-label="Remove ${escapeHtml(t.name)} from the list (keeps downloaded files)" title="Remove from list (keeps files)">
+              ${svgIcon('remove')}
+            </button>
+            <button class="icon-btn ${deleteArmed === t.infoHash ? 'danger-armed' : ''}" data-action="delete" data-hash="${t.infoHash}"
+              aria-label="Delete ${escapeHtml(t.name)} and its downloaded files" title="Delete torrent and files">
+              ${deleteArmed === t.infoHash ? '✓' : svgIcon('trash')}
             </button>
           </div>
         </td>`;
@@ -254,12 +259,15 @@
     if (action === 'pause') await window.bitty.torrents.pause(hash);
     else if (action === 'resume') await window.bitty.torrents.resume(hash);
     else if (action === 'remove') {
-      if (removeArmed === hash) {
-        removeArmed = null;
-        await window.bitty.torrents.remove(hash, false);
+      // Non-destructive (files stay on disk), no confirm needed.
+      await window.bitty.torrents.remove(hash, false);
+    } else if (action === 'delete') {
+      if (deleteArmed === hash) {
+        deleteArmed = null;
+        await window.bitty.torrents.remove(hash, true);
       } else {
-        removeArmed = hash;
-        setTimeout(() => { if (removeArmed === hash) removeArmed = null; }, 4000);
+        deleteArmed = hash;
+        setTimeout(() => { if (deleteArmed === hash) deleteArmed = null; }, 4000);
       }
     }
   });

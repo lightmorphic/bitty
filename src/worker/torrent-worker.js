@@ -5,10 +5,33 @@
 // enforces that, not this file. This file just talks WebTorrent and
 // reports state back to the main (unprivileged, un-namespaced) process.
 
+const fs = require('fs');
+const path = require('path');
 const { createServer } = require('../main/ndjson-socket');
 
 const socketPath = process.env.BITTY_WORKER_SOCKET;
 if (!socketPath) { process.stderr.write('BITTY_WORKER_SOCKET not set\n'); process.exit(1); }
+
+// Persisted so the active torrent set survives the worker restarting, e.g.
+// on every VPN reconnect or app relaunch, not just this process's memory.
+// Keyed by infoHash. Written on every add/pause/resume/remove, small and
+// infrequent enough that a plain sync write each time is fine.
+const PERSIST_PATH = path.join(process.env.HOME, '.config', 'Bitty', 'torrents.json');
+
+function loadPersisted() {
+  try {
+    return JSON.parse(fs.readFileSync(PERSIST_PATH, 'utf8'));
+  } catch (_) {
+    return {};
+  }
+}
+
+function savePersisted(entries) {
+  try {
+    fs.mkdirSync(path.dirname(PERSIST_PATH), { recursive: true });
+    fs.writeFileSync(PERSIST_PATH, JSON.stringify(entries), 'utf8');
+  } catch (_) {}
+}
 
 async function main() {
   // webtorrent is a pure ESM package (some of its own dependencies use
@@ -18,6 +41,7 @@ async function main() {
 
   const client = new WebTorrent({ maxConns: 55 });
   let downloadDir = process.env.HOME + '/Downloads';
+  let persisted = loadPersisted();
 
   // Throttling: either a flat manual cap, or "auto" mode which limits to a
   // percentage of the connection's real observed capacity. There's no
@@ -89,18 +113,32 @@ async function main() {
   const clients = new Set();
   setInterval(() => broadcast(clients), 1000);
 
+  function persistEntry(t) {
+    persisted[t.infoHash] = { magnetURI: t.magnetURI, paused: !!t.paused };
+    savePersisted(persisted);
+  }
+
+  function forgetEntry(infoHash) {
+    delete persisted[infoHash];
+    savePersisted(persisted);
+  }
+
   function addTorrent(idOrMagnetOrBuffer, opts, respond) {
     try {
       // client.add()'s own callback only fires once full metadata has been
       // fetched from peers, which can take anywhere from under a second to
       // indefinitely long, far past the IPC request's timeout, even though
       // the torrent was genuinely added. The 'infoHash' event fires as soon
-      // as the id itself is parsed (no peer/network activity needed), so
-      // reply on that instead. The torrent list broadcast picks up the real
-      // name and progress once metadata does arrive.
+      // as the id itself is parsed (no peer/network activity needed, and
+      // magnetURI is already populated by then too), so reply and persist
+      // on that instead. The torrent list broadcast picks up the real name
+      // and progress once metadata does arrive.
       let responded = false;
       const t = client.add(idOrMagnetOrBuffer, { path: downloadDir, ...opts });
+      if (opts.startPaused) { t.paused = true; }
       t.once('infoHash', () => {
+        persistEntry(t);
+        if (t.paused) t.pause();
         if (responded) return;
         responded = true;
         respond({ ok: true, infoHash: t.infoHash });
@@ -113,6 +151,14 @@ async function main() {
     } catch (e) {
       respond({ ok: false, error: e.message });
     }
+  }
+
+  function resumeSaved() {
+    const entries = Object.values(persisted);
+    for (const entry of entries) {
+      addTorrent(entry.magnetURI, { startPaused: entry.paused }, () => {});
+    }
+    return entries.length;
   }
 
   function handleMessage(msg, reply, conn) {
@@ -130,23 +176,27 @@ async function main() {
       }
       case 'pause': {
         const t = client.get(msg.infoHash);
-        if (t) { t.pause(); t.paused = true; }
+        if (t) { t.pause(); t.paused = true; persistEntry(t); }
         respond({ ok: !!t });
         break;
       }
       case 'resume': {
         const t = client.get(msg.infoHash);
-        if (t) { t.resume(); t.paused = false; }
+        if (t) { t.resume(); t.paused = false; persistEntry(t); }
         respond({ ok: !!t });
         break;
       }
       case 'remove': {
         const t = client.get(msg.infoHash);
         if (t) {
+          forgetEntry(msg.infoHash);
           client.remove(msg.infoHash, { destroyStore: !!msg.deleteFiles }, () => respond({ ok: true }));
         } else respond({ ok: false, error: 'not found' });
         break;
       }
+      case 'resume-saved':
+        respond({ ok: true, count: resumeSaved() });
+        break;
       case 'set-download-dir':
         downloadDir = msg.path;
         respond({ ok: true });
