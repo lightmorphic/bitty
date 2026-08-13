@@ -91,8 +91,24 @@ async function main() {
 
   function addTorrent(idOrMagnetOrBuffer, opts, respond) {
     try {
-      client.add(idOrMagnetOrBuffer, { path: downloadDir, ...opts }, (t) => {
+      // client.add()'s own callback only fires once full metadata has been
+      // fetched from peers, which can take anywhere from under a second to
+      // indefinitely long, far past the IPC request's timeout, even though
+      // the torrent was genuinely added. The 'infoHash' event fires as soon
+      // as the id itself is parsed (no peer/network activity needed), so
+      // reply on that instead. The torrent list broadcast picks up the real
+      // name and progress once metadata does arrive.
+      let responded = false;
+      const t = client.add(idOrMagnetOrBuffer, { path: downloadDir, ...opts });
+      t.once('infoHash', () => {
+        if (responded) return;
+        responded = true;
         respond({ ok: true, infoHash: t.infoHash });
+      });
+      t.once('error', (e) => {
+        if (responded) return;
+        responded = true;
+        respond({ ok: false, error: e.message });
       });
     } catch (e) {
       respond({ ok: false, error: e.message });
