@@ -21,6 +21,7 @@ function runApp() {
   const { VpnController } = require('./vpn-controller');
   const { TorrentController } = require('./torrent-controller');
   const { UpdaterController } = require('./updater-controller');
+  const { TrayController } = require('./tray-controller');
   const { parseOvpn } = require('./ovpn-parse');
   const { ensureExtractedRuntime } = require('./runtime-extract');
 
@@ -38,6 +39,7 @@ function runApp() {
   let vpn;
   let torrents;
   let updater;
+  let tray;
 
   function send(channel, payload) {
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
@@ -52,6 +54,7 @@ function runApp() {
     const runtimePaths = ensureExtractedRuntime(app);
     vpn = new VpnController((status) => {
       send('vpn-status', status);
+      if (tray) tray.setVpnStatus(status);
       if (status.status === 'connected') onVpnConnected();
     }, runtimePaths);
     torrents = new TorrentController((list) => send('torrents', list));
@@ -104,6 +107,26 @@ function runApp() {
       send('settings', settings.get());
       send('vpn-status', vpn.status);
       send('updater-status', updater.status);
+    });
+
+    tray = new TrayController({ getWindow: () => mainWindow, quitApp: () => app.quit() });
+    tray.init({
+      red: path.join(__dirname, '..', '..', 'renderer', 'assets', 'tray', 'tray-red.png'),
+      amber: path.join(__dirname, '..', '..', 'renderer', 'assets', 'tray', 'tray-amber.png'),
+      green: path.join(__dirname, '..', '..', 'renderer', 'assets', 'tray', 'tray-green.png'),
+    });
+    tray.setVpnStatus(vpn.status);
+
+    // Closing the window minimizes to tray instead of quitting, the VPN
+    // tunnel and any active torrents keep running in the background.
+    // Only an explicit Quit (tray menu, or the updater's restart) exits
+    // for real.
+    let quittingForReal = false;
+    app.on('before-quit', () => { quittingForReal = true; });
+    mainWindow.on('close', (e) => {
+      if (quittingForReal) return;
+      e.preventDefault();
+      mainWindow.hide();
     });
   });
 
@@ -187,6 +210,7 @@ function runApp() {
     e.preventDefault();
     quitting = true;
     if (updater) updater.stop();
+    if (tray) tray.destroy();
     if (vpn) await vpn.teardown().catch(() => {});
     app.exit(0);
   });

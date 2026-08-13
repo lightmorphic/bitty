@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0
+
+- Added minimize to tray. Closing the window now hides it instead of quitting, so the VPN
+  tunnel and any active torrents keep running in the background; a tray icon lets you show the
+  window again or quit for real. The tray icon changes red/amber/green with VPN status, same
+  coding as the sidebar. Known caveat: on Cinnamon, the tray icon may render as a generic system
+  glyph instead of the coloured dot, a limitation in Cinnamon's `xapp-sn-watcher` tray host with
+  pixmap-only icons, not something fixable from the app side. The show/hide/quit behaviour
+  itself is unaffected.
+
 ## 0.3.3
 
 - Fixed the torrent worker crashing every time an actual magnet link or torrent was added

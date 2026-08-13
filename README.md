@@ -12,15 +12,20 @@ A VPN-only BitTorrent client, packaged as a single self-contained Linux AppImage
   the one specific VPN server address needed to establish that tunnel. There is no default route
   and no firewall rule that lets anything else leave, not even to your own LAN. If the VPN drops,
   the torrent engine is stopped immediately, and the firewall would block it even if it weren't.
-- Everything is torn down when you quit: namespace, firewall rules, VPN process. Nothing is left
-  running or configured on your machine afterwards.
+- Everything is torn down when you actually quit: namespace, firewall rules, VPN process. Nothing
+  is left running or configured on your machine afterwards.
 - A single speed cap for the whole app (not per-torrent), either a manual number you set, or an
   automatic mode that limits itself to a percentage (default 50%, configurable) of your measured
   connection speed.
-- Auto-update: the dot next to the version number in the top right is green when you're up to
-  date, yellow while an update is downloading or ready, and red if a check failed. Click it to
-  check right now; it also checks automatically every 30 minutes. When an update finishes
-  downloading, a bar appears with a "Restart to update" button.
+- Auto-update: the dot next to the version number in the sidebar is green when you're up to date,
+  amber when an update is available (click it to download), a progress ring while downloading,
+  and green with a restart icon once it's ready (click to restart). Red means it couldn't reach
+  GitHub. Checks automatically every 30 minutes.
+- Minimize to tray: closing the window hides it instead of quitting, the VPN tunnel and any
+  active torrents keep running in the background. Use the tray icon to bring the window back or
+  quit for real. The tray icon's colour follows VPN status the same way the sidebar does, though
+  on some Linux desktops (Cinnamon in particular) it may show as a generic icon instead of a
+  coloured dot, a limitation of that desktop's tray host, not something this app controls.
 
 **The one exception to VPN-only networking:** checking GitHub for a new version is a direct call
 made by the main app window, not through the VPN or the isolated namespace, the same as any
@@ -70,9 +75,10 @@ Debian/Ubuntu-family desktop): `openvpn`, `iproute2` (`ip`), `nftables` (`nft`),
   username/password are correct. Re-upload the file if you're not sure it saved correctly.
 - **Nothing downloads even though it says connected.** The torrent may just have no seeders.
   Check the peer count column.
-- **Quitting the app** always disconnects the VPN and removes the namespace/firewall rules
-  first. If it's ever force-killed (crash, `kill -9`) instead of quit normally, run this once to
-  clean up manually:
+- **Closing the window** minimizes to tray, it does not quit or disconnect the VPN. Use "Quit
+  Bitty" from the tray icon's menu to actually exit, which always disconnects the VPN and removes
+  the namespace/firewall rules first. If it's ever force-killed (crash, `kill -9`) instead of quit
+  normally, run this once to clean up manually:
   ```bash
   sudo ip netns del bitty0 2>/dev/null
   sudo ip link del bitty-veth0 2>/dev/null
