@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.0
+
+- Fixed the tray icon: it now renders as a real, distinct icon (not a generic fallback glyph) and
+  actually responds to clicks. The previous implementation, built on Electron's own Linux tray
+  support, silently omitted a property the desktop's tray watcher expects every icon to have, and
+  the watcher was treating that as a broken/placeholder item — so clicks never reached it. Replaced
+  it with a purpose-built implementation of the two D-Bus interfaces a tray icon needs
+  (StatusNotifierItem and DBusMenu) that always sends the full, correct property set. Clicking the
+  icon now shows/hides the window, and the right-click menu (Show/Hide, Quit) works too.
+- The tray icon now uses the same colour/black-and-white choice from Settings consistently, and
+  updates live as the VPN connects, disconnects, or reconnects.
+
 ## 0.6.0
 
 - Fixed minimizing the window (not just closing it) leaving a taskbar/panel entry behind. The
