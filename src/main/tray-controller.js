@@ -55,8 +55,9 @@ class TrayController {
       win.show();
       win.focus();
     }
-    this._rebuildMenu();
   }
+
+  refreshMenu() { this._rebuildMenu(); }
 
   setVpnStatus(status) {
     if (!this.tray) return;
