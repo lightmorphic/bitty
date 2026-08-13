@@ -8,52 +8,53 @@
 </head>
 <body>
   <div class="shell">
-    <header class="topbar">
-      <div class="app-id">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
         <a class="brand" href="https://bitty.lightmorphic.co.uk/" target="_blank" rel="noopener">
-          <svg class="brand-mark" width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <svg class="brand-mark" width="24" height="24" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <circle cx="13" cy="13" r="12" stroke="var(--accent)" stroke-width="2"/>
             <path d="M8 13.5 11.5 17 18 9.5" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           <span class="brand-name">Bitty</span>
-          <span class="brand-version" id="appVersion">v0.0.0</span>
         </a>
-        <button id="updateDot" class="update-dot" type="button" data-state="unknown" aria-label="Checking for updates">
-          <svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true">
-            <circle class="ring-track" cx="10" cy="10" r="8" />
-            <circle class="ring-progress" cx="10" cy="10" r="8" />
-            <circle class="dot-fill" cx="10" cy="10" r="7" />
-            <path class="dot-icon icon-download" d="M10 6.2v5.6M7.3 9.4 10 12.1l2.7-2.7M6.6 13.8h6.8" />
-            <path class="dot-icon icon-restart" d="M13.9 7.3A4.6 4.6 0 1 0 14.6 11 M14.3 5.4v3.2h-3.2" />
-          </svg>
-        </button>
-      </div>
-      <div class="topbar-right">
-        <div id="vpnBadge" class="vpn-badge vpn-badge--down">
-          <span class="dot" aria-hidden="true"></span>
-          <span id="vpnBadgeText">VPN not connected</span>
+        <div class="brand-meta">
+          <span class="brand-version" id="appVersion">v0.0.0</span>
+          <button id="updateDot" class="update-dot" type="button" data-state="unknown" aria-label="Checking for updates">
+            <svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true">
+              <circle class="ring-track" cx="10" cy="10" r="8" />
+              <circle class="ring-progress" cx="10" cy="10" r="8" />
+              <circle class="dot-fill" cx="10" cy="10" r="7" />
+              <path class="dot-icon icon-download" d="M10 6.2v5.6M7.3 9.4 10 12.1l2.7-2.7M6.6 13.8h6.8" />
+              <path class="dot-icon icon-restart" d="M13.9 7.3A4.6 4.6 0 1 0 14.6 11 M14.3 5.4v3.2h-3.2" />
+            </svg>
+          </button>
         </div>
       </div>
-    </header>
 
-    <main class="content">
-      <section class="panel vpn-panel">
-        <h2>VPN connection</h2>
-        <p class="hint">Torrenting is physically blocked until this shows connected. There is no path to the internet that skips the VPN.</p>
-
-        <div id="vpnNoConfig" class="vpn-config-row">
-          <button id="chooseOvpnBtn" class="btn btn-secondary">Upload .ovpn file&hellip;</button>
-          <span id="ovpnFilename" class="hint"></span>
+      <div id="vpnStatusCard" class="vpn-status-card vpn-status-card--down">
+        <span class="vpn-status-dot" aria-hidden="true"></span>
+        <div class="vpn-status-text">
+          <span id="vpnStatusLabel" class="vpn-status-label">VPN not connected</span>
+          <span id="vpnStatusDetail" class="vpn-status-detail">Torrenting is blocked until this is connected</span>
         </div>
+      </div>
 
-        <div id="vpnAuthRow" class="form-row form-row--hidden">
+      <div class="sidebar-section">
+        <h2 class="sidebar-heading">VPN configuration</h2>
+
+        <div class="vpn-config-row">
+          <button id="chooseOvpnBtn" class="btn btn-secondary btn-block">Upload .ovpn file&hellip;</button>
+        </div>
+        <p id="ovpnFilename" class="hint hint--file"></p>
+
+        <div id="vpnAuthRow" class="stack stack--hidden">
           <div class="field">
             <label for="vpnUsername">VPN username</label>
             <input id="vpnUsername" type="text" autocomplete="off" />
           </div>
           <div class="field">
             <label for="vpnPassword">VPN password</label>
-            <input id="vpnPassword" type="password" autocomplete="off" placeholder="•••••••• (leave blank to keep saved password)" />
+            <input id="vpnPassword" type="password" autocomplete="off" placeholder="•••••••• (leave blank to keep saved)" />
           </div>
         </div>
 
@@ -61,82 +62,107 @@
           <button id="saveVpnBtn" class="btn btn-secondary vpn-actions--hidden">Save config</button>
           <button id="connectBtn" class="btn btn-primary vpn-actions--hidden">Connect</button>
           <button id="disconnectBtn" class="btn btn-danger vpn-actions--hidden">Disconnect</button>
-          <button id="forgetVpnBtn" class="btn btn-ghost vpn-actions--hidden">Remove saved config</button>
         </div>
+        <button id="forgetVpnBtn" class="link-btn vpn-actions--hidden">Remove saved config</button>
         <p id="vpnError" class="error-text"></p>
-        <p id="vpnDetail" class="hint"></p>
-      </section>
+      </div>
 
-      <section class="panel add-panel">
-        <h2>Add a torrent</h2>
-        <div class="add-row">
-          <input id="magnetInput" type="text" placeholder="Paste a magnet link&hellip;" />
-          <button id="addMagnetBtn" class="btn btn-primary">Add</button>
-          <button id="chooseTorrentFileBtn" class="btn btn-secondary">Upload .torrent&hellip;</button>
-        </div>
-      </section>
+      <div class="sidebar-spacer"></div>
 
-      <section class="panel list-panel">
-        <div class="list-panel-head">
-          <h2>Torrents</h2>
-          <button id="openFolderBtn" class="btn btn-ghost">Open download folder</button>
-        </div>
-        <div class="torrent-table-wrap">
-          <table class="torrent-table">
-            <caption class="sr-only">Active torrents and their transfer status</caption>
-            <thead>
-              <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Progress</th>
-                <th scope="col">Down</th>
-                <th scope="col">Up</th>
-                <th scope="col">Peers</th>
-                <th scope="col"></th>
-              </tr>
-            </thead>
-            <tbody id="torrentRows">
-              <tr class="empty-row"><td colspan="6">No torrents yet. Add a magnet link or a .torrent file above.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <button id="settingsBtn" class="sidebar-settings-btn" type="button" aria-haspopup="dialog" aria-controls="settingsOverlay">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M8.4 2.5h3.2l.5 2.1c.5.18.97.43 1.4.73l2.05-.68 1.6 2.77-1.6 1.44a5.7 5.7 0 0 1 0 1.66l1.6 1.44-1.6 2.77-2.05-.68c-.43.3-.9.55-1.4.73l-.5 2.1H8.4l-.5-2.1a5.9 5.9 0 0 1-1.4-.73l-2.05.68-1.6-2.77 1.6-1.44a5.7 5.7 0 0 1 0-1.66L2.85 7.4l1.6-2.77 2.05.68c.43-.3.9-.55 1.4-.73l.5-2.08Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+          <circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.4"/>
+        </svg>
+        Settings
+      </button>
+    </aside>
 
-      <section class="panel settings-panel">
-        <h2>Settings</h2>
-        <div class="settings-grid">
-          <div class="field">
-            <label>Download folder</label>
-            <div class="folder-row">
-              <span id="downloadDirText" class="folder-path"></span>
-              <button id="chooseDownloadDirBtn" class="btn btn-secondary">Change&hellip;</button>
-            </div>
-          </div>
+    <main class="main">
+      <div class="toolbar">
+        <input id="magnetInput" type="text" class="magnet-input" placeholder="Paste a magnet link&hellip;" />
+        <button id="addMagnetBtn" class="btn btn-primary">Add</button>
+        <button id="chooseTorrentFileBtn" class="btn btn-secondary">Upload .torrent&hellip;</button>
+        <div class="toolbar-spacer"></div>
+        <button id="openFolderBtn" class="btn btn-ghost">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M2.5 5.8c0-.7.6-1.3 1.3-1.3h3.4l1.4 1.7h7.1c.7 0 1.3.6 1.3 1.3v6.7c0 .7-.6 1.3-1.3 1.3H3.8c-.7 0-1.3-.6-1.3-1.3V5.8Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+          </svg>
+          Open folder
+        </button>
+      </div>
+      <p id="torrentError" class="error-text error-text--toolbar"></p>
 
-          <div class="field">
-            <label class="checkbox-label">
-              <input id="autoThrottleToggle" type="checkbox" />
-              Automatically limit speed to a percentage of my connection (recommended)
-            </label>
-            <div class="throttle-sub">
-              <label for="autoPercentInput" class="hint">Percentage to use</label>
-              <div class="percent-input">
-                <input id="autoPercentInput" type="number" min="1" max="100" step="1" />
-                <span>%</span>
+      <div class="table-region">
+        <table class="torrent-table">
+          <caption class="sr-only">Active torrents and their transfer status</caption>
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Progress</th>
+              <th scope="col">Down</th>
+              <th scope="col">Up</th>
+              <th scope="col">Peers</th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody id="torrentRows">
+            <tr class="empty-row"><td colspan="6">
+              <div class="empty-state">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                  <circle cx="20" cy="20" r="17" stroke="currentColor" stroke-width="1.6" opacity="0.35"/>
+                  <path d="M13 20.5 18 25.5 27.5 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+                </svg>
+                <p>No torrents yet</p>
+                <span class="hint">Paste a magnet link or upload a .torrent file above to get started</span>
               </div>
-              <p id="measuredHint" class="hint"></p>
-            </div>
-          </div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
 
-          <div class="field">
-            <label for="manualCapInput">Manual speed cap (used when auto-limit is off)</label>
-            <div class="percent-input">
-              <input id="manualCapInput" type="number" min="0" step="1" />
-              <span>KB/s (0 = unlimited)</span>
-            </div>
+    <div id="settingsOverlay" class="modal-overlay modal-overlay--hidden">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="modal-head">
+          <h2 id="settingsTitle">Settings</h2>
+          <button id="settingsCloseBtn" class="icon-btn" aria-label="Close settings">
+            <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <div class="field">
+          <label>Download folder</label>
+          <div class="folder-row">
+            <span id="downloadDirText" class="folder-path"></span>
+            <button id="chooseDownloadDirBtn" class="btn btn-secondary">Change&hellip;</button>
           </div>
         </div>
-      </section>
-    </main>
+
+        <div class="field">
+          <label class="checkbox-label">
+            <input id="autoThrottleToggle" type="checkbox" />
+            Automatically limit speed to a percentage of my connection (recommended)
+          </label>
+          <div class="throttle-sub">
+            <label for="autoPercentInput" class="hint">Percentage to use</label>
+            <div class="percent-input">
+              <input id="autoPercentInput" type="number" min="1" max="100" step="1" />
+              <span>%</span>
+            </div>
+            <p id="measuredHint" class="hint"></p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="manualCapInput">Manual speed cap (used when auto-limit is off)</label>
+          <div class="percent-input">
+            <input id="manualCapInput" type="number" min="0" step="1" />
+            <span>KB/s (0 = unlimited)</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>

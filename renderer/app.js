@@ -4,8 +4,9 @@
   const updateDot = $('updateDot');
   const appVersion = $('appVersion');
 
-  const vpnBadge = $('vpnBadge');
-  const vpnBadgeText = $('vpnBadgeText');
+  const vpnStatusCard = $('vpnStatusCard');
+  const vpnStatusLabel = $('vpnStatusLabel');
+  const vpnStatusDetail = $('vpnStatusDetail');
   const chooseOvpnBtn = $('chooseOvpnBtn');
   const ovpnFilename = $('ovpnFilename');
   const vpnAuthRow = $('vpnAuthRow');
@@ -16,14 +17,17 @@
   const disconnectBtn = $('disconnectBtn');
   const forgetVpnBtn = $('forgetVpnBtn');
   const vpnError = $('vpnError');
-  const vpnDetail = $('vpnDetail');
 
   const magnetInput = $('magnetInput');
   const addMagnetBtn = $('addMagnetBtn');
   const chooseTorrentFileBtn = $('chooseTorrentFileBtn');
   const openFolderBtn = $('openFolderBtn');
   const torrentRows = $('torrentRows');
+  const torrentError = $('torrentError');
 
+  const settingsBtn = $('settingsBtn');
+  const settingsOverlay = $('settingsOverlay');
+  const settingsCloseBtn = $('settingsCloseBtn');
   const downloadDirText = $('downloadDirText');
   const chooseDownloadDirBtn = $('chooseDownloadDirBtn');
   const autoThrottleToggle = $('autoThrottleToggle');
@@ -50,18 +54,20 @@
   }
 
   function renderVpnBadge(status) {
-    vpnBadge.classList.remove('vpn-badge--down', 'vpn-badge--connecting', 'vpn-badge--up');
+    vpnStatusCard.classList.remove('vpn-status-card--down', 'vpn-status-card--connecting', 'vpn-status-card--up');
     if (status.status === 'connected') {
-      vpnBadge.classList.add('vpn-badge--up');
-      vpnBadgeText.textContent = status.ip ? `VPN connected · ${status.ip}` : 'VPN connected';
+      vpnStatusCard.classList.add('vpn-status-card--up');
+      vpnStatusLabel.textContent = 'VPN connected';
+      vpnStatusDetail.textContent = status.ip ? `Torrenting through ${status.ip}` : 'Torrenting is active';
     } else if (status.status === 'connecting' || status.status === 'reconnecting') {
-      vpnBadge.classList.add('vpn-badge--connecting');
-      vpnBadgeText.textContent = status.status === 'reconnecting' ? 'VPN reconnecting…' : 'VPN connecting…';
+      vpnStatusCard.classList.add('vpn-status-card--connecting');
+      vpnStatusLabel.textContent = status.status === 'reconnecting' ? 'Reconnecting…' : 'Connecting…';
+      vpnStatusDetail.textContent = 'Torrenting stays blocked until the tunnel is up';
     } else {
-      vpnBadge.classList.add('vpn-badge--down');
-      vpnBadgeText.textContent = 'VPN not connected';
+      vpnStatusCard.classList.add('vpn-status-card--down');
+      vpnStatusLabel.textContent = 'VPN not connected';
+      vpnStatusDetail.textContent = status.lastError || 'Torrenting is blocked until this is connected';
     }
-    vpnDetail.textContent = status.lastError ? `Last error: ${status.lastError}` : '';
 
     connectBtn.disabled = status.status === 'connecting' || status.status === 'connected';
     const isUp = status.status === 'connected' || status.status === 'connecting' || status.status === 'reconnecting';
@@ -72,7 +78,7 @@
   function renderVpnConfigState() {
     ovpnFilename.textContent = pendingOvpn ? pendingOvpn.filename
       : (hasConfig && currentSettings ? `Saved: ${currentSettings.vpn.filename}` : 'No config uploaded yet');
-    vpnAuthRow.classList.toggle('form-row--hidden', !(pendingOvpn || hasConfig));
+    vpnAuthRow.classList.toggle('stack--hidden', !(pendingOvpn || hasConfig));
     saveVpnBtn.classList.toggle('vpn-actions--hidden', !pendingOvpn);
     forgetVpnBtn.classList.toggle('vpn-actions--hidden', !hasConfig);
     if (hasConfig && currentSettings && currentSettings.vpn.username) {
@@ -142,12 +148,12 @@
   addMagnetBtn.addEventListener('click', async () => {
     const magnet = magnetInput.value.trim();
     if (!magnet) return;
-    vpnError.textContent = '';
+    torrentError.textContent = '';
     try {
       await window.bitty.torrents.addMagnet(magnet);
       magnetInput.value = '';
     } catch (e) {
-      vpnError.textContent = e.message;
+      torrentError.textContent = e.message;
     }
   });
   magnetInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addMagnetBtn.click(); });
@@ -164,7 +170,7 @@
       try {
         await window.bitty.torrents.addFile(file.name, base64);
       } catch (e) {
-        vpnError.textContent = e.message;
+        torrentError.textContent = e.message;
       }
     });
     input.click();
@@ -183,9 +189,20 @@
 
   let removeArmed = null; // infoHash currently showing the confirm state
 
+  const EMPTY_STATE_HTML = `<tr class="empty-row"><td colspan="6">
+    <div class="empty-state">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <circle cx="20" cy="20" r="17" stroke="currentColor" stroke-width="1.6" opacity="0.35"/>
+        <path d="M13 20.5 18 25.5 27.5 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+      </svg>
+      <p>No torrents yet</p>
+      <span class="hint">Paste a magnet link or upload a .torrent file above to get started</span>
+    </div>
+  </td></tr>`;
+
   function renderTorrents(torrents) {
     if (!torrents.length) {
-      torrentRows.innerHTML = '<tr class="empty-row"><td colspan="6">No torrents yet. Add a magnet link or a .torrent file above.</td></tr>';
+      torrentRows.innerHTML = EMPTY_STATE_HTML;
       return;
     }
     torrentRows.innerHTML = '';
@@ -284,6 +301,19 @@
   }
 
   window.bitty.settings.onSettings(applySettings);
+
+  function openSettings() {
+    settingsOverlay.classList.remove('modal-overlay--hidden');
+  }
+  function closeSettings() {
+    settingsOverlay.classList.add('modal-overlay--hidden');
+  }
+  settingsBtn.addEventListener('click', openSettings);
+  settingsCloseBtn.addEventListener('click', closeSettings);
+  settingsOverlay.addEventListener('click', (e) => { if (e.target === settingsOverlay) closeSettings(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !settingsOverlay.classList.contains('modal-overlay--hidden')) closeSettings();
+  });
 
   const RING_CIRCUMFERENCE = 50.27; // 2 * PI * r(8), matches style.css
   const ringProgressEl = updateDot.querySelector('.ring-progress');
