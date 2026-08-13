@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.1
+
+- Actually fixed the tray icon this time. 0.7.0's rewrite fixed the D-Bus side but the icon theme
+  path it advertised (`IconThemePath`) pointed inside `app.asar`, the packed archive Electron reads
+  through transparently for its own code but which is just an opaque file to everything else. The
+  desktop's tray watcher is a separate process reading that path directly off disk, so it could
+  never see the icon files, and silently fell back to a generic glyph. This only showed up in a
+  packaged build, not the dev checkout used to verify 0.7.0, which is how it got through. The icon
+  theme is now unpacked from the archive at build time and the path points at the real files.
+
 ## 0.7.0
 
 - Fixed the tray icon: it now renders as a real, distinct icon (not a generic fallback glyph) and
