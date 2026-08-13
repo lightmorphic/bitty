@@ -58,54 +58,38 @@ html, body {
   overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
 
-.shell { display: flex; flex-direction: column; height: 100vh; }
+/* ============ shell / sidebar / main ============ */
 
-.topbar {
+.shell { display: flex; height: 100vh; }
+
+.sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  background: var(--muted);
+  border-right: 1px solid var(--border);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 24px;
-  border-bottom: 1px solid var(--border);
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  overflow-y: auto;
 }
 
-.app-id { display: flex; align-items: center; gap: 10px; }
+.sidebar-brand { display: flex; flex-direction: column; gap: 10px; }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   letter-spacing: -0.01em;
   color: var(--fg);
   text-decoration: none;
 }
 .brand:hover .brand-name { text-decoration: underline; }
-.brand-version {
-  font-weight: 600;
-  font-size: 0.8125rem;
-  color: var(--muted-fg);
-}
 
-.vpn-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  border: 1px solid var(--border);
-}
-.vpn-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted-fg); }
-.vpn-badge--down { color: var(--muted-fg); }
-.vpn-badge--down .dot { background: var(--danger); }
-.vpn-badge--connecting { color: var(--warning); background: var(--warning-bg); border-color: transparent; }
-.vpn-badge--connecting .dot { background: var(--warning); }
-.vpn-badge--up { color: var(--success); background: var(--success-bg); border-color: transparent; }
-.vpn-badge--up .dot { background: var(--success); }
-
-.topbar-right { display: flex; align-items: center; gap: 10px; }
+.brand-meta { display: flex; align-items: center; justify-content: space-between; }
+.brand-version { font-size: 0.75rem; font-weight: 600; color: var(--muted-fg); }
 
 /* Update status dot: Charlie's standard cross-app widget. Exact
    Lightmorphic palette hues, not the text-shade tokens used elsewhere. */
@@ -161,65 +145,71 @@ html, body {
 .update-dot[data-state="available"] .icon-download { display: block; }
 .update-dot[data-state="ready"] .icon-restart { display: block; }
 
-.content {
-  flex: 1;
-  min-height: 0;
-  overflow: visible;
-  padding: 20px 24px;
-  display: grid;
-  gap: 16px;
-  grid-template-columns: 400px 380px 1fr;
-  grid-template-rows: auto 1fr;
-  grid-template-areas:
-    "vpn settings list"
-    "add settings list";
-  max-width: 1560px;
-  margin: 0 auto;
-  width: 100%;
+/* ============ VPN status "sign" ============ */
+
+.vpn-status-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg);
 }
 
-.vpn-panel { grid-area: vpn; }
-.add-panel { grid-area: add; }
-.settings-panel { grid-area: settings; }
-.list-panel { grid-area: list; min-height: 0; display: flex; flex-direction: column; }
+.vpn-status-dot {
+  width: 12px;
+  height: 12px;
+  margin-top: 4px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--danger);
+  box-shadow: 0 0 0 4px var(--danger-bg);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.vpn-status-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vpn-status-label { font-weight: 700; font-size: 0.95rem; color: var(--danger); }
+.vpn-status-detail { font-size: 0.75rem; color: var(--muted-fg); overflow-wrap: anywhere; }
 
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--panel-radius);
-  box-shadow: var(--shadow-panel);
-  padding: 1.1rem 1.5rem;
+.vpn-status-card--connecting .vpn-status-dot {
+  background: var(--warning);
+  box-shadow: 0 0 0 4px var(--warning-bg);
+  animation: statusPulse 1.4s ease-in-out infinite;
+}
+.vpn-status-card--connecting .vpn-status-label { color: var(--warning); }
+
+.vpn-status-card--up .vpn-status-dot { background: var(--success); box-shadow: 0 0 0 4px var(--success-bg); }
+.vpn-status-card--up .vpn-status-label { color: var(--success); }
+
+@keyframes statusPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) {
+  .vpn-status-dot { animation: none !important; }
 }
 
-.panel h2 {
-  margin: 0 0 4px;
-  font-size: 1.0625rem;
-  font-weight: 600;
-}
+/* ============ sidebar sections ============ */
 
-.hint {
+.sidebar-section { display: flex; flex-direction: column; gap: 10px; }
+.sidebar-heading {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--muted-fg);
-  font-size: 0.8125rem;
-  margin: 4px 0 0;
 }
 
-.error-text {
-  color: var(--danger);
-  font-size: 0.875rem;
-  margin: 8px 0 0;
-  min-height: 1em;
-}
+.hint { color: var(--muted-fg); font-size: 0.8125rem; margin: 0; }
+.hint--file { margin-top: -2px; word-break: break-all; }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 14px;
-}
-.form-row--hidden, .vpn-actions--hidden { display: none !important; }
+.error-text { color: var(--danger); font-size: 0.8125rem; margin: 0; min-height: 0; }
+.error-text:empty { display: none; }
+.error-text--toolbar:not(:empty) { padding: 0 24px 12px; }
+
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.stack--hidden { display: none !important; }
 
 .field { display: flex; flex-direction: column; gap: 6px; }
-.field label { font-size: 0.9375rem; font-weight: 600; }
+.field label { font-size: 0.875rem; font-weight: 600; }
 
 input[type="text"], input[type="password"], input[type="number"] {
   display: block;
@@ -240,45 +230,92 @@ input:focus-visible {
 .btn {
   font: inherit;
   font-weight: 600;
-  padding: 10px 18px;
+  font-size: 0.875rem;
+  padding: 9px 16px;
   border-radius: var(--radius);
   border: 1px solid transparent;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .btn-primary { background: var(--accent); color: var(--on-accent); }
 .btn-primary:hover { background: var(--accent-hover); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-secondary { background: var(--muted); color: var(--fg); border-color: var(--border); }
+.btn-secondary { background: var(--bg); color: var(--fg); border-color: var(--border); }
+.btn-secondary:hover { background: var(--panel); }
 .btn-danger { background: var(--danger); color: #ffffff; }
 .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border); }
+.btn-ghost:hover { background: var(--muted); }
+.btn-block { width: 100%; justify-content: center; }
 
-.vpn-config-row, .vpn-actions {
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--link);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  align-self: flex-start;
+}
+.link-btn:hover { text-decoration: underline; }
+.link-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.vpn-config-row { display: flex; }
+.vpn-actions { display: flex; gap: 8px; }
+.vpn-actions--hidden { display: none !important; }
+
+.sidebar-spacer { flex: 1; }
+
+.sidebar-settings-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 14px;
-  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
 }
+.sidebar-settings-btn:hover { background: var(--panel); }
+.sidebar-settings-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.add-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
-.add-row input { flex: 1; min-width: 220px; }
+/* ============ main content ============ */
 
-.list-panel-head { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
-.torrent-table-wrap {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  margin-top: 14px;
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
+.magnet-input { flex: 1; min-width: 160px; max-width: 520px; }
+.toolbar-spacer { flex: 1; }
+
+.table-region { flex: 1; min-height: 0; overflow-y: auto; }
 
 .torrent-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
 }
-.torrent-table thead th { position: sticky; top: 0; background: var(--panel); }
+.torrent-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 1;
+}
 .torrent-table th {
   text-align: left;
   font-size: 0.75rem;
@@ -286,15 +323,28 @@ input:focus-visible {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted-fg);
-  padding: 8px 10px;
+  padding: 12px 24px;
   border-bottom: 1px solid var(--border);
 }
 .torrent-table td {
-  padding: 10px;
+  padding: 12px 24px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
-.torrent-table .empty-row td { color: var(--muted-fg); text-align: center; padding: 24px 10px; }
+.torrent-table tbody tr:not(.empty-row):hover { background: var(--muted); }
+
+.empty-row td { border-bottom: none; padding: 0; }
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 96px 20px;
+  color: var(--muted-fg);
+  text-align: center;
+}
+.empty-state p { margin: 0; font-weight: 600; color: var(--fg); font-size: 0.95rem; }
 
 .progress-track {
   background: var(--muted);
@@ -319,12 +369,39 @@ input:focus-visible {
 .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .icon-btn.danger-armed { background: var(--danger); border-color: var(--danger); color: #fff; }
 
-.settings-grid { display: grid; gap: 12px; margin-top: 10px; }
+/* ============ settings modal ============ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 9, 11, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+.modal-overlay--hidden { display: none; }
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--shadow-panel);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.modal-head { display: flex; align-items: center; justify-content: space-between; }
+.modal-head h2 { margin: 0; font-size: 1.125rem; font-weight: 700; }
 
 .checkbox-label { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9375rem; }
 .checkbox-label input { width: 16px; height: 16px; }
 
-.throttle-sub { margin-top: 6px; padding-left: 24px; display: flex; flex-direction: column; gap: 3px; }
+.throttle-sub { margin-top: 6px; padding-left: 24px; display: flex; flex-direction: column; gap: 4px; }
 #measuredHint:empty { display: none; margin: 0; }
 .percent-input { display: flex; align-items: center; gap: 8px; max-width: 220px; }
 .percent-input input { width: 100px; }
@@ -340,17 +417,12 @@ input:focus-visible {
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 1080px) {
-  .content {
-    grid-template-columns: 1fr;
-    grid-template-rows: none;
-    grid-template-areas: none;
-    overflow-y: auto;
-    padding: 16px;
-  }
-  .list-panel { min-height: 320px; }
-}
+/* ============ responsive ============ */
 
-@media (max-width: 640px) {
-  .form-row { grid-template-columns: 1fr; }
+@media (max-width: 760px) {
+  .shell { flex-direction: column; height: auto; min-height: 100vh; }
+  .sidebar { width: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  .main { min-height: 60vh; }
+  .toolbar { flex-wrap: wrap; }
+  .magnet-input { max-width: none; }
 }

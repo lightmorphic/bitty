@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0
+
+- Redesigned the whole interface: a fixed sidebar (VPN status, VPN configuration, Settings)
+  next to a full-width torrent list, instead of the previous three-way-split panel layout.
+- The VPN status is now a large, unmissable card at the top of the sidebar: solid red when
+  disconnected, amber while connecting/reconnecting, solid green when connected with the
+  active IP shown.
+- Secondary settings (download folder, speed limits) moved into a dedicated modal opened from
+  a Settings button, decluttering the main view without hiding them, they're one click away.
+- Toolbar (add magnet/torrent, open folder) now sits directly above the torrent list, which
+  uses the full width of the window, an empty-state illustration replaces the plain text row.
+
 ## 0.2.2
 
 - Fixed the Settings panel silently clipping its bottom fields, the manual speed cap was
