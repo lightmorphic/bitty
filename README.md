@@ -26,10 +26,10 @@ A VPN-only BitTorrent client, packaged as a single self-contained Linux AppImage
   and green with a restart icon once it's ready (click to restart). Red means it couldn't reach
   GitHub. Checks automatically every 30 minutes.
 - Minimize to tray: closing the window hides it instead of quitting, the VPN tunnel and any
-  active torrents keep running in the background. Use the tray icon to bring the window back or
-  quit for real. The tray icon's colour follows VPN status the same way the sidebar does, though
-  on some Linux desktops (Cinnamon in particular) it may show as a generic icon instead of a
-  coloured dot, a limitation of that desktop's tray host, not something this app controls.
+  active torrents keep running in the background. Click the tray icon to bring the window back or
+  hide it again; right-click for a menu with Show/Hide and Quit. The icon's colour follows VPN
+  status the same way the sidebar does (green connected, amber connecting, red disconnected), and
+  Settings has an option to use a black-and-white version instead.
 
 **The one exception to VPN-only networking:** checking GitHub for a new version is a direct call
 made by the main app window, not through the VPN or the isolated namespace, the same as any

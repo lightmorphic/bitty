@@ -1,7 +1,7 @@
 {
   "name": "bitty",
   "productName": "Bitty",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "VPN-only BitTorrent client. Self-contained AppImage. No traffic ever leaves except through the VPN tunnel.",
   "main": "src/main/main.js",
   "private": true,
@@ -13,8 +13,9 @@
     "release": "bash scripts/release.sh"
   },
   "dependencies": {
-    "webtorrent": "^3.0.21",
-    "electron-updater": "^6.8.9"
+    "@homebridge/dbus-native": "^0.7.8",
+    "electron-updater": "^6.8.9",
+    "webtorrent": "^3.0.21"
   },
   "devDependencies": {
     "electron": "^43.4.0",
@@ -36,7 +37,9 @@
       "node_modules/utf-8-validate/**"
     ],
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Network",
       "icon": "build/icon.png"
     },

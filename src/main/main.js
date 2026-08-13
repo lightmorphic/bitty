@@ -34,7 +34,7 @@ function runApp() {
   const { VpnController } = require('./vpn-controller');
   const { TorrentController } = require('./torrent-controller');
   const { UpdaterController } = require('./updater-controller');
-  const { TrayController } = require('./tray-controller');
+  const { SniTray } = require('./sni-tray');
   const { parseOvpn } = require('./ovpn-parse');
   const { ensureExtractedRuntime } = require('./runtime-extract');
 
@@ -130,20 +130,8 @@ function runApp() {
       send('updater-status', updater.status);
     });
 
-    tray = new TrayController({ getWindow: () => mainWindow, quitApp: () => app.quit() });
-    const trayAssetDir = path.join(__dirname, '..', '..', 'renderer', 'assets', 'tray');
-    tray.init({
-      color: {
-        red: path.join(trayAssetDir, 'tray-red.png'),
-        amber: path.join(trayAssetDir, 'tray-amber.png'),
-        green: path.join(trayAssetDir, 'tray-green.png'),
-      },
-      mono: {
-        disconnected: path.join(trayAssetDir, 'tray-mono-disconnected.png'),
-        connecting: path.join(trayAssetDir, 'tray-mono-connecting.png'),
-        connected: path.join(trayAssetDir, 'tray-mono-connected.png'),
-      },
-    });
+    tray = new SniTray({ getWindow: () => mainWindow, quitApp: () => app.quit() });
+    tray.init({ themePath: path.join(__dirname, '..', '..', 'renderer', 'assets', 'tray-theme') });
     tray.setIconStyle(settings.data.trayIconStyle);
     tray.setVpnStatus(vpn.status);
 

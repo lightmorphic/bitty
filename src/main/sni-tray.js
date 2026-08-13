@@ -1,0 +1,230 @@
+// Custom StatusNotifierItem + DBusMenu implementation, replacing
+// Electron's built-in Tray class entirely for the icon/menu/click side
+// (window show/hide itself is still plain Electron BrowserWindow calls).
+//
+// Why: direct D-Bus property comparison against a tray icon that renders
+// and responds to clicks correctly on this same system showed Electron's
+// Tray never exports an IconName property at all (not empty, genuinely
+// absent as a key), where a spec-compliant item always has it, even as an
+// empty string when it isn't used. Cinnamon's xapp-sn-watcher appears to
+// treat an item missing that property as a broken placeholder: generic
+// icon, and clicks don't reach it. Confirmed empirically (see below) that
+// hand-building the StatusNotifierItem and DBusMenu interfaces directly
+// produces wire output matching a known-working reference item exactly.
+//
+// Icon delivery is IconName + IconThemePath (a bundled, private icon
+// theme directory) rather than raw IconPixmap, since a theme-referenced
+// icon is how the tray icons that do render correctly on this system
+// appear to work, and it lets the desktop's own icon loader pick the
+// right size instead of us guessing one. IconPixmap is still declared
+// (empty) so the property is present either way.
+
+const dbus = require('@homebridge/dbus-native');
+const { EventEmitter } = require('events');
+
+const SNI_IFACE = {
+  name: 'org.kde.StatusNotifierItem',
+  methods: {
+    Activate: ['ii', ''],
+    SecondaryActivate: ['ii', ''],
+    ContextMenu: ['ii', ''],
+    Scroll: ['is', ''],
+  },
+  properties: {
+    Category: 's',
+    Id: 's',
+    Title: 's',
+    Status: 's',
+    IconName: 's',
+    IconThemePath: 's',
+    IconPixmap: 'a(iiay)',
+    OverlayIconName: 's',
+    OverlayIconPixmap: 'a(iiay)',
+    AttentionIconName: 's',
+    AttentionIconPixmap: 'a(iiay)',
+    AttentionMovieName: 's',
+    ToolTip: '(sa(iiay)ss)',
+    ItemIsMenu: 'b',
+    Menu: 'o',
+    WindowId: 'i',
+  },
+  signals: {
+    NewTitle: [],
+    NewIcon: [],
+    NewAttentionIcon: [],
+    NewOverlayIcon: [],
+    NewToolTip: [],
+    NewStatus: ['s'],
+  },
+};
+
+const MENU_IFACE = {
+  name: 'com.canonical.dbusmenu',
+  methods: {
+    GetLayout: ['iias', 'u(ia{sv}av)'],
+    GetGroupProperties: ['aias', 'a(ia{sv})'],
+    Event: ['isvu', ''],
+    AboutToShow: ['i', 'b'],
+  },
+  properties: {
+    Version: 'u',
+    TextDirection: 's',
+    Status: 's',
+  },
+  signals: {
+    LayoutUpdated: ['ui'],
+    ItemsPropertiesUpdated: ['a(ia{sv})', 'a(ias)'],
+  },
+};
+
+const MENU_ID_TOGGLE = 1;
+const MENU_ID_QUIT = 2;
+
+class SniTray {
+  constructor({ getWindow, quitApp }) {
+    this.getWindow = getWindow;
+    this.quitApp = quitApp;
+    this.bus = null;
+    this.style = 'color';
+    this.themePath = null;
+    this.lastStatus = { status: 'disconnected', ip: null };
+    this.menuRevision = 1;
+  }
+
+  init({ themePath }) {
+    this.themePath = themePath;
+    this.bus = dbus.sessionBus();
+
+    this.sni = Object.assign(new EventEmitter(), {
+      Category: 'ApplicationStatus',
+      Id: `Bitty_${process.pid}`,
+      Title: 'Bitty',
+      Status: 'Active',
+      IconName: 'bitty-tray-disconnected',
+      IconThemePath: this.themePath,
+      IconPixmap: [],
+      OverlayIconName: '',
+      OverlayIconPixmap: [],
+      AttentionIconName: '',
+      AttentionIconPixmap: [],
+      AttentionMovieName: '',
+      ToolTip: ['', [], 'Bitty', 'VPN not connected'],
+      ItemIsMenu: false,
+      Menu: '/MenuBar',
+      WindowId: 0,
+      Activate: () => { this.toggleWindow(); return null; },
+      SecondaryActivate: () => { this.toggleWindow(); return null; },
+      ContextMenu: () => { this.toggleWindow(); return null; },
+      Scroll: () => null,
+    });
+
+    this.menu = Object.assign(new EventEmitter(), {
+      Version: 3,
+      TextDirection: 'ltr',
+      Status: 'normal',
+      GetLayout: (parentId, depth, propertyNames) => this._menuLayout(),
+      GetGroupProperties: () => [],
+      Event: (id, eventId) => {
+        if (eventId !== 'clicked') return null;
+        if (id === MENU_ID_TOGGLE) this.toggleWindow();
+        else if (id === MENU_ID_QUIT) this.quitApp();
+        return null;
+      },
+      AboutToShow: () => false,
+    });
+
+    this.bus.exportInterface(this.sni, '/StatusNotifierItem', SNI_IFACE);
+    this.bus.exportInterface(this.menu, '/MenuBar', MENU_IFACE);
+
+    const busName = `org.freedesktop.StatusNotifierItem-${process.pid}-1`;
+    this.bus.requestName(busName, 0, (err) => {
+      if (err) { process.stderr.write('[bitty-tray] requestName failed: ' + err + '\n'); return; }
+      this.bus.invoke(
+        {
+          path: '/StatusNotifierWatcher',
+          destination: 'org.kde.StatusNotifierWatcher',
+          interface: 'org.kde.StatusNotifierWatcher',
+          member: 'RegisterStatusNotifierItem',
+          signature: 's',
+          body: [busName],
+        },
+        (regErr) => {
+          if (regErr) process.stderr.write('[bitty-tray] RegisterStatusNotifierItem failed: ' + regErr + '\n');
+        },
+      );
+    });
+  }
+
+  _menuLayout() {
+    const visible = !!this.getWindow() && this.getWindow().isVisible();
+    const root = [
+      0,
+      [['children-display', ['s', 'submenu']]],
+      [
+        ['(ia{sv}av)', [MENU_ID_TOGGLE, [['label', ['s', visible ? 'Hide Bitty' : 'Show Bitty']]], []]],
+        ['(ia{sv}av)', [99, [['type', ['s', 'separator']]], []]],
+        ['(ia{sv}av)', [MENU_ID_QUIT, [['label', ['s', 'Quit Bitty']]], []]],
+      ],
+    ];
+    return [this.menuRevision, root];
+  }
+
+  refreshMenu() {
+    if (!this.menu) return;
+    this.menuRevision += 1;
+    this.menu.emit('LayoutUpdated', this.menuRevision, 0);
+  }
+
+  toggleWindow() {
+    const win = this.getWindow();
+    if (!win) return;
+    if (win.isVisible()) win.hide();
+    else { win.show(); win.focus(); }
+  }
+
+  setIconStyle(style) {
+    this.style = style === 'mono' ? 'mono' : 'color';
+    this._applyIcon();
+  }
+
+  setVpnStatus(status) {
+    this.lastStatus = status;
+    this._applyIcon();
+  }
+
+  _applyIcon() {
+    if (!this.sni) return;
+    const status = this.lastStatus;
+    let state;
+    let label;
+    if (status.status === 'connected') {
+      state = 'connected';
+      label = status.ip ? `VPN connected · ${status.ip}` : 'VPN connected';
+    } else if (status.status === 'connecting' || status.status === 'reconnecting') {
+      state = 'connecting';
+      label = status.status === 'reconnecting' ? 'VPN reconnecting…' : 'VPN connecting…';
+    } else {
+      state = 'disconnected';
+      label = 'VPN not connected';
+    }
+    this.sni.IconName = this.style === 'mono' ? `bitty-tray-mono-${state}` : `bitty-tray-${state}`;
+    this.sni.ToolTip = ['', [], 'Bitty', label];
+    if (typeof this.sni.emit === 'function') {
+      this.sni.emit('NewIcon');
+      this.sni.emit('NewToolTip');
+      this.sni.emit('NewStatus', 'Active');
+    }
+  }
+
+  destroy() {
+    // No explicit unexport API on this library; releasing the bus
+    // connection drops the well-known name and the watcher notices the
+    // owner disappearing, which is enough to deregister cleanly.
+    if (this.bus && this.bus.connection) {
+      try { this.bus.connection.end(); } catch (_) {}
+    }
+    this.bus = null;
+  }
+}
+
+module.exports = { SniTray };
