@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1
+
+- Fixed the tray menu's "Hide Bitty"/"Show Bitty" label getting stuck out of sync with the
+  window's actual visibility when it was hidden via the window's own close button rather than
+  through the tray icon itself. It now stays accurate regardless of which path hid or showed
+  the window.
+
 ## 0.5.0
 
 - Fixed a serious bug: the app had no single-instance lock, so relaunching it while already

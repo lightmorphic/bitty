@@ -160,6 +160,10 @@ function runApp() {
       e.preventDefault();
       mainWindow.hide();
     });
+    // Whatever the path (tray click, window close button, restored some
+    // other way), keep the tray menu's "Show/Hide Bitty" label honest.
+    mainWindow.on('show', () => { if (tray) tray.refreshMenu(); });
+    mainWindow.on('hide', () => { if (tray) tray.refreshMenu(); });
   });
 
   ipcMain.handle('settings:get', () => settings.get());
