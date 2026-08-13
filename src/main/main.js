@@ -17,6 +17,19 @@ function runApp() {
   const path = require('path');
   const fs = require('fs');
 
+  // Minimize-to-tray means the app is very often already running, hidden,
+  // when someone launches the AppImage again (a desktop shortcut, muscle
+  // memory, not realizing it's still open). Without this, that spawns a
+  // full second instance: its own window, its own tray icon, and its own
+  // helper fighting the first one over the same netns/socket paths, which
+  // is exactly the "tray icon does nothing, can't get rid of it" failure
+  // mode. Second launches just focus the existing window instead.
+  const gotLock = app.requestSingleInstanceLock();
+  if (!gotLock) {
+    app.quit();
+    return;
+  }
+
   const { Settings } = require('./settings');
   const { VpnController } = require('./vpn-controller');
   const { TorrentController } = require('./torrent-controller');
@@ -40,6 +53,13 @@ function runApp() {
   let torrents;
   let updater;
   let tray;
+
+  app.on('second-instance', () => {
+    if (!mainWindow) return;
+    if (!mainWindow.isVisible()) mainWindow.show();
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  });
 
   function send(channel, payload) {
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
@@ -79,6 +99,7 @@ function runApp() {
         s.speedCapKBps,
         s.autoThrottlePercent,
       ).catch(() => {});
+      await torrents.resumeSaved().catch(() => {});
     }
 
     mainWindow = new BrowserWindow({
@@ -117,6 +138,16 @@ function runApp() {
       green: path.join(trayAssetDir, 'tray-green.png'),
     });
     tray.setVpnStatus(vpn.status);
+
+    // Auto-connect on launch if a config is already saved, rather than
+    // requiring a manual Connect click every time. Still needs the pkexec
+    // password prompt, that's unavoidable, but at least it's the only
+    // step. A failed attempt (declined prompt, bad credentials) just shows
+    // in the sidebar as normal; it doesn't retry itself.
+    if (settings.data.vpn.hasConfig) {
+      const secrets = settings.loadVpnSecrets();
+      if (secrets) vpn.connect(secrets).catch(() => {});
+    }
 
     // Closing the window minimizes to tray instead of quitting, the VPN
     // tunnel and any active torrents keep running in the background.

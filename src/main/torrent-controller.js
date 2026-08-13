@@ -44,6 +44,7 @@ class TorrentController {
   async setThrottle(mode, manualCapKBps, autoPercent) {
     return this._simple('set-throttle', { mode, manualCapKBps, autoPercent });
   }
+  async resumeSaved() { return this._simple('resume-saved', {}); }
 
   async _simple(type, payload) {
     if (!this.client) throw new Error('torrent engine not running');
