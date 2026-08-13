@@ -34,6 +34,7 @@
   const autoPercentInput = $('autoPercentInput');
   const manualCapInput = $('manualCapInput');
   const measuredHint = $('measuredHint');
+  const trayIconStyleSelect = $('trayIconStyleSelect');
 
   let pendingOvpn = null; // { filename, text } picked but not yet saved
   let currentSettings = null;
@@ -305,6 +306,10 @@
   autoPercentInput.addEventListener('change', pushThrottleSettings);
   manualCapInput.addEventListener('change', pushThrottleSettings);
 
+  trayIconStyleSelect.addEventListener('change', () => {
+    window.bitty.settings.update({ trayIconStyle: trayIconStyleSelect.value });
+  });
+
   function applySettings(s) {
     currentSettings = s;
     hasConfig = s.vpn.hasConfig;
@@ -314,6 +319,7 @@
     manualCapInput.value = s.speedCapKBps;
     autoPercentInput.disabled = !autoThrottleToggle.checked;
     manualCapInput.disabled = autoThrottleToggle.checked;
+    trayIconStyleSelect.value = s.trayIconStyle || 'color';
     renderVpnConfigState();
   }
 
@@ -336,11 +342,11 @@
   const ringProgressEl = updateDot.querySelector('.ring-progress');
 
   const UPDATE_TOOLTIPS = {
-    'up-to-date': 'Up to date',
+    'up-to-date': 'Up to date, click to check again',
     available: 'Update available, click to download',
     downloading: 'Downloading update',
     ready: 'Click to restart the app',
-    error: "Can't connect to GitHub",
+    error: "Can't connect to GitHub, click to retry",
   };
 
   function renderUpdateStatus(status) {
@@ -358,6 +364,8 @@
     const state = updateDot.dataset.state;
     if (state === 'available') window.bitty.updater.download();
     else if (state === 'ready') window.bitty.updater.restart();
+    else if (state === 'downloading') return; // no action while a download is already in progress
+    else window.bitty.updater.check(); // up-to-date, error, or unknown: check right now
   });
   window.bitty.updater.onStatus(renderUpdateStatus);
 

@@ -133,10 +133,18 @@ function runApp() {
     tray = new TrayController({ getWindow: () => mainWindow, quitApp: () => app.quit() });
     const trayAssetDir = path.join(__dirname, '..', '..', 'renderer', 'assets', 'tray');
     tray.init({
-      red: path.join(trayAssetDir, 'tray-red.png'),
-      amber: path.join(trayAssetDir, 'tray-amber.png'),
-      green: path.join(trayAssetDir, 'tray-green.png'),
+      color: {
+        red: path.join(trayAssetDir, 'tray-red.png'),
+        amber: path.join(trayAssetDir, 'tray-amber.png'),
+        green: path.join(trayAssetDir, 'tray-green.png'),
+      },
+      mono: {
+        disconnected: path.join(trayAssetDir, 'tray-mono-disconnected.png'),
+        connecting: path.join(trayAssetDir, 'tray-mono-connecting.png'),
+        connected: path.join(trayAssetDir, 'tray-mono-connected.png'),
+      },
     });
+    tray.setIconStyle(settings.data.trayIconStyle);
     tray.setVpnStatus(vpn.status);
 
     // Auto-connect on launch if a config is already saved, rather than
@@ -160,6 +168,12 @@ function runApp() {
       e.preventDefault();
       mainWindow.hide();
     });
+    // The window's own minimize button/action isn't cancelable the way
+    // close is, it always minimizes first. Immediately swap that for a
+    // real hide, otherwise a minimized window still leaves a taskbar/panel
+    // entry behind, exactly the "still there" symptom reported: minimize
+    // to tray should mean gone from the panel too, not just iconified.
+    mainWindow.on('minimize', () => { mainWindow.hide(); });
     // Whatever the path (tray click, window close button, restored some
     // other way), keep the tray menu's "Show/Hide Bitty" label honest.
     mainWindow.on('show', () => { if (tray) tray.refreshMenu(); });
@@ -167,7 +181,11 @@ function runApp() {
   });
 
   ipcMain.handle('settings:get', () => settings.get());
-  ipcMain.handle('settings:update', (_e, patch) => settings.update(patch));
+  ipcMain.handle('settings:update', (_e, patch) => {
+    const result = settings.update(patch);
+    if (patch.trayIconStyle && tray) tray.setIconStyle(patch.trayIconStyle);
+    return result;
+  });
 
   ipcMain.handle('settings:choose-download-dir', async () => {
     const res = await dialog.showOpenDialog(mainWindow, {
@@ -237,6 +255,7 @@ function runApp() {
   ipcMain.handle('shell:open-download-dir', () => shell.openPath(settings.data.downloadDir));
 
   ipcMain.handle('updater:status', () => updater.status);
+  ipcMain.handle('updater:check', () => updater.check());
   ipcMain.handle('updater:download', () => updater.download());
   ipcMain.handle('updater:restart', () => updater.restartAndInstall());
 

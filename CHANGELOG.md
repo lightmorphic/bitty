@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.0
+
+- Fixed minimizing the window (not just closing it) leaving a taskbar/panel entry behind. The
+  window's own minimize action isn't cancelable the way close is, so it always minimized first;
+  now it's immediately swapped for a real hide, so minimize-to-tray means gone from the panel
+  entirely, not just iconified.
+- The update-status dot is 50% bigger.
+- Clicking the update dot now checks for updates immediately in every state, not just when an
+  update is already available or ready to install.
+- Added a Settings option for the tray icon style: colour (red/amber/green, matching the sidebar)
+  or black and white (a plain dot at varying opacity to hint status instead of colour).
+
 ## 0.5.1
 
 - Fixed the tray menu's "Hide Bitty"/"Show Bitty" label getting stuck out of sync with the

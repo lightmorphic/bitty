@@ -1,10 +1,14 @@
-// Minimize-to-tray: closing the window hides it instead of quitting, so
-// the VPN tunnel and any in-progress torrents keep running in the
-// background. The tray icon itself doubles as a status glance (red/amber/
-// green, same coding as the sidebar's VPN card) without opening the window.
+// Minimize-to-tray: closing the window (or clicking its own minimize
+// button, which isn't cancelable, so main.js swaps it for a hide as soon
+// as it fires) hides it instead of leaving a panel/taskbar entry, so the
+// VPN tunnel and any in-progress torrents keep running in the background
+// with nothing left visible except the tray icon. The icon doubles as a
+// status glance (red/amber/green, same coding as the sidebar's VPN card,
+// or a plain white dot at varying opacity in the "black and white" style)
+// without opening the window.
 //
 // Note: on some Linux tray hosts (Cinnamon's xapp-sn-watcher among them)
-// the icon may render as a generic glyph instead of the coloured dot.
+// the icon may render as a generic glyph instead of the intended image.
 // Investigated thoroughly: Electron's built-in Tray class only ever sends
 // one icon size over D-Bus, no matter how many representations a
 // nativeImage is given (confirmed directly), whereas apps that render
@@ -18,17 +22,26 @@ class TrayController {
     this.quitApp = quitApp;
     this.tray = null;
     this.icons = null;
+    this.style = 'color';
+    this.lastStatus = { status: 'disconnected', ip: null };
   }
 
-  init(icons) {
+  init(iconPaths) {
     const { Tray, Menu, nativeImage } = require('electron');
     this.Menu = Menu;
     this.icons = {
-      red: nativeImage.createFromPath(icons.red),
-      amber: nativeImage.createFromPath(icons.amber),
-      green: nativeImage.createFromPath(icons.green),
+      color: {
+        red: nativeImage.createFromPath(iconPaths.color.red),
+        amber: nativeImage.createFromPath(iconPaths.color.amber),
+        green: nativeImage.createFromPath(iconPaths.color.green),
+      },
+      mono: {
+        red: nativeImage.createFromPath(iconPaths.mono.disconnected),
+        amber: nativeImage.createFromPath(iconPaths.mono.connecting),
+        green: nativeImage.createFromPath(iconPaths.mono.connected),
+      },
     };
-    this.tray = new Tray(this.icons.red);
+    this.tray = new Tray(this.icons.color.red);
     this.tray.setToolTip('Bitty: VPN not connected');
     this._rebuildMenu();
     this.tray.on('click', () => this.toggleWindow());
@@ -59,18 +72,30 @@ class TrayController {
 
   refreshMenu() { this._rebuildMenu(); }
 
+  setIconStyle(style) {
+    this.style = style === 'mono' ? 'mono' : 'color';
+    this._applyIcon();
+  }
+
   setVpnStatus(status) {
+    this.lastStatus = status;
+    this._applyIcon();
+  }
+
+  _applyIcon() {
     if (!this.tray) return;
+    const status = this.lastStatus;
+    const set = this.icons[this.style];
     let icon;
     let label;
     if (status.status === 'connected') {
-      icon = this.icons.green;
+      icon = set.green;
       label = status.ip ? `VPN connected · ${status.ip}` : 'VPN connected';
     } else if (status.status === 'connecting' || status.status === 'reconnecting') {
-      icon = this.icons.amber;
+      icon = set.amber;
       label = status.status === 'reconnecting' ? 'VPN reconnecting…' : 'VPN connecting…';
     } else {
-      icon = this.icons.red;
+      icon = set.red;
       label = 'VPN not connected';
     }
     this.tray.setImage(icon);
