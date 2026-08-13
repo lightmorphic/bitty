@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2
+
+- Icon buttons (torrent row pause/remove, settings close) are now circular and borderless
+  instead of bordered rounded squares, matching Charlie's standard icon-button style.
+
 ## 0.4.1
 
 - Fixed DNS resolution being completely broken inside the torrent engine's isolated namespace,
