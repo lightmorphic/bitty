@@ -2,6 +2,15 @@
 // the VPN tunnel and any in-progress torrents keep running in the
 // background. The tray icon itself doubles as a status glance (red/amber/
 // green, same coding as the sidebar's VPN card) without opening the window.
+//
+// Note: on some Linux tray hosts (Cinnamon's xapp-sn-watcher among them)
+// the icon may render as a generic glyph instead of the coloured dot.
+// Investigated thoroughly: Electron's built-in Tray class only ever sends
+// one icon size over D-Bus, no matter how many representations a
+// nativeImage is given (confirmed directly), whereas apps that render
+// correctly there are using a different, non-Electron-builtin tray
+// implementation. Not fixable by changing the image; the show/hide/quit
+// behaviour itself is unaffected.
 
 class TrayController {
   constructor({ getWindow, quitApp }) {

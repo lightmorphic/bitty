@@ -4,11 +4,13 @@
 
 - Added minimize to tray. Closing the window now hides it instead of quitting, so the VPN
   tunnel and any active torrents keep running in the background; a tray icon lets you show the
-  window again or quit for real. The tray icon changes red/amber/green with VPN status, same
-  coding as the sidebar. Known caveat: on Cinnamon, the tray icon may render as a generic system
-  glyph instead of the coloured dot, a limitation in Cinnamon's `xapp-sn-watcher` tray host with
-  pixmap-only icons, not something fixable from the app side. The show/hide/quit behaviour
-  itself is unaffected.
+  window again or quit for real. Show/hide/quit verified directly against the running app.
+- Known caveat: on Cinnamon, the tray icon may render as a generic system glyph instead of the
+  intended red/amber/green dot. Root cause confirmed by comparing against another app's tray
+  icon on the same system: Electron's built-in `Tray` class only ever sends one icon size over
+  D-Bus, no matter how many are provided, while apps that render correctly there are using a
+  different, non-Electron-builtin tray implementation. Not something fixable by changing the
+  image; the show/hide/quit behaviour itself is unaffected.
 
 ## 0.3.3
 

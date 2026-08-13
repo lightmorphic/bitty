@@ -110,10 +110,11 @@ function runApp() {
     });
 
     tray = new TrayController({ getWindow: () => mainWindow, quitApp: () => app.quit() });
+    const trayAssetDir = path.join(__dirname, '..', '..', 'renderer', 'assets', 'tray');
     tray.init({
-      red: path.join(__dirname, '..', '..', 'renderer', 'assets', 'tray', 'tray-red.png'),
-      amber: path.join(__dirname, '..', '..', 'renderer', 'assets', 'tray', 'tray-amber.png'),
-      green: path.join(__dirname, '..', '..', 'renderer', 'assets', 'tray', 'tray-green.png'),
+      red: path.join(trayAssetDir, 'tray-red.png'),
+      amber: path.join(trayAssetDir, 'tray-amber.png'),
+      green: path.join(trayAssetDir, 'tray-green.png'),
     });
     tray.setVpnStatus(vpn.status);
 
