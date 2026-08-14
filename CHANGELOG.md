@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.8
+
+- Clicking the update dot now visibly pulses while it checks, rather than jumping straight to the
+  result with no feedback that anything happened. Once it lands on up to date, a tooltip says so
+  and fades out on its own a couple of seconds later, rather than only being visible if you happen
+  to still be hovering. The hover tooltip for the up-to-date state is now just "Up to date"
+  instead of "Up to date, click to check again".
+- Tooltips are now white with dark text instead of a dark bubble with white text, since Bitty's own
+  UI is dark: the dark tooltip design is meant for a light-background app and was nearly
+  disappearing against Bitty's background.
+
 ## 0.7.7
 
 - Icon-only buttons (pause/resume, remove, delete, the update dot, close settings) now show a

@@ -342,15 +342,39 @@
   const ringProgressEl = updateDot.querySelector('.ring-progress');
 
   const UPDATE_TOOLTIPS = {
-    'up-to-date': 'Up to date, click to check again',
+    checking: 'Checking for updates',
+    'up-to-date': 'Up to date',
     available: 'Update available, click to download',
     downloading: 'Downloading update',
     ready: 'Click to restart the app',
     error: "Can't connect to GitHub, click to retry",
   };
 
+  let lastUpdateState = null;
+  let checkingStartedAt = null;
+  const MIN_CHECKING_MS = 900; // GitHub answers fast enough that the pulse would otherwise barely flash
+
   function renderUpdateStatus(status) {
+    if (status.state === 'checking') {
+      checkingStartedAt = Date.now();
+      applyUpdateStatus(status);
+      return;
+    }
+    if (checkingStartedAt !== null) {
+      const elapsed = Date.now() - checkingStartedAt;
+      checkingStartedAt = null;
+      if (elapsed < MIN_CHECKING_MS) {
+        setTimeout(() => applyUpdateStatus(status), MIN_CHECKING_MS - elapsed);
+        return;
+      }
+    }
+    applyUpdateStatus(status);
+  }
+
+  function applyUpdateStatus(status) {
     appVersion.textContent = `v${status.version || '0.0.0'}`;
+    const previousState = lastUpdateState;
+    lastUpdateState = status.state;
     updateDot.dataset.state = status.state;
     updateDot.setAttribute('aria-label', UPDATE_TOOLTIPS[status.state] || 'Checking for updates');
     updateDot.setAttribute('data-tooltip', UPDATE_TOOLTIPS[status.state] || 'Checking for updates');
@@ -358,13 +382,19 @@
       const offset = RING_CIRCUMFERENCE * (1 - (status.progress || 0));
       ringProgressEl.style.strokeDashoffset = String(offset);
     }
+    // A check that was already running (the dot pulsing) just landed on
+    // up-to-date: surface that as a result, not just something you'd only
+    // see by happening to still be hovering.
+    if (previousState === 'checking' && status.state === 'up-to-date' && window.bittyTooltip) {
+      window.bittyTooltip.showTransient(updateDot, 'Up to date', 2200);
+    }
   }
 
   updateDot.addEventListener('click', () => {
     const state = updateDot.dataset.state;
     if (state === 'available') window.bitty.updater.download();
     else if (state === 'ready') window.bitty.updater.restart();
-    else if (state === 'downloading') return; // no action while a download is already in progress
+    else if (state === 'downloading' || state === 'checking') return; // already in progress
     else window.bitty.updater.check(); // up-to-date, error, or unknown: check right now
   });
   window.bitty.updater.onStatus(renderUpdateStatus);
