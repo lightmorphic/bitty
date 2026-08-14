@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.4
+
+- Fixed a crash on "Quit Bitty" from the tray menu, introduced by 0.7.3's click fix: quitting tore
+  down the tray's D-Bus connection before the D-Bus library had finished writing back the reply to
+  the very click that triggered the quit, which threw an uncaught write-after-end error and took
+  the whole app down with an error dialog instead of exiting. The quit is now deferred by a tick so
+  that reply flushes first, and a connection-level error handler means a stray write error like
+  this can no longer crash the app outright either way.
+
 ## 0.7.3
 
 - Fixed the tray menu rendering correctly (labels visible, right size) but every click doing

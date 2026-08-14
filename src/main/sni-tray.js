@@ -96,6 +96,18 @@ class SniTray {
   init({ themePath }) {
     this.themePath = themePath;
     this.bus = dbus.sessionBus();
+    // Belt-and-braces: a write to the underlying socket after it's been
+    // ended (e.g. a reply racing our own teardown on quit) throws as an
+    // uncaught exception with no handler attached here, which would take
+    // the entire Electron main process down over what's really just a
+    // tray icon. Deferring the quit above should prevent that particular
+    // case, but there's no reason a stray write error should ever be fatal
+    // to the whole app either way.
+    if (this.bus.connection) {
+      this.bus.connection.on('error', (err) => {
+        process.stderr.write('[bitty-tray] connection error: ' + err + '\n');
+      });
+    }
 
     this.sni = Object.assign(new EventEmitter(), {
       Category: 'ApplicationStatus',
@@ -215,7 +227,15 @@ class SniTray {
   _handleEvent(id, eventId) {
     if (eventId !== 'clicked') return;
     if (id === MENU_ID_TOGGLE) this.toggleWindow();
-    else if (id === MENU_ID_QUIT) this.quitApp();
+    else if (id === MENU_ID_QUIT) {
+      // quitApp() ends up tearing down this bus connection (see destroy()).
+      // Doing that synchronously, inside the handler dbus-native invokes
+      // this from, tears it down before the library has written back the
+      // method-return reply for the very click that got us here, so it
+      // tries to write to an already-ended stream and throws. Deferring by
+      // a tick lets that reply flush first.
+      setImmediate(() => this.quitApp());
+    }
   }
 
   _menuGroupProperties(ids) {
