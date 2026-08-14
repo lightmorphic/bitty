@@ -34,6 +34,9 @@ contextBridge.exposeInMainWorld('bitty', {
     onUpdate: (fn) => on('torrents', fn),
   },
   openDownloadDir: () => invoke('shell:open-download-dir'),
+  clipboard: {
+    readText: () => invoke('clipboard:read-text'),
+  },
   updater: {
     status: () => invoke('updater:status'),
     check: () => invoke('updater:check'),
