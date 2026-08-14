@@ -368,6 +368,46 @@ input:focus-visible, select:focus-visible {
 .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .icon-btn.danger-armed { background: var(--danger); color: #fff; }
 
+/* ============ tooltip ============
+   Always dark, regardless of app theme, positioned by tooltip.js. Default
+   placement is above the target with the arrow pointing down; when there's
+   no room above the viewport it flips below with the arrow pointing up
+   instead of clipping off-screen. */
+
+.tooltip-bubble {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  max-width: 260px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--brand-navy);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-shadow: var(--shadow-panel);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity .12s ease, transform .12s ease;
+}
+.tooltip-bubble.is-visible { opacity: 1; transform: translateY(0); }
+.tooltip-bubble::after {
+  content: '';
+  position: absolute;
+  left: var(--tooltip-arrow, 50%);
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  background: var(--brand-navy);
+  transform: rotate(45deg);
+}
+.tooltip-bubble[data-placement="top"]::after { bottom: -4px; }
+.tooltip-bubble[data-placement="bottom"]::after { top: -4px; }
+
 /* ============ settings modal ============ */
 
 .modal-overlay {

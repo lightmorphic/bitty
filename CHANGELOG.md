@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.7
+
+- Icon-only buttons (pause/resume, remove, delete, the update dot, close settings) now show a
+  proper styled tooltip on hover instead of the plain OS one. It appears above the button by
+  default with the arrow pointing down; near the top of the window it flips to appear below with
+  the arrow pointing up instead of running off the screen, and is clamped horizontally too.
+
 ## 0.7.6
 
 - Fixed the sidebar header: the version number and status dot had dropped onto their own line
