@@ -64,7 +64,9 @@ const MENU_IFACE = {
     GetLayout: ['iias', 'u(ia{sv}av)'],
     GetGroupProperties: ['aias', 'a(ia{sv})'],
     Event: ['isvu', ''],
+    EventGroup: ['a(isvu)', 'ai'],
     AboutToShow: ['i', 'b'],
+    AboutToShowGroup: ['ai', 'aiai'],
   },
   properties: {
     Version: 'u',
@@ -124,13 +126,19 @@ class SniTray {
       Status: 'normal',
       GetLayout: (parentId, depth, propertyNames) => this._menuLayout(),
       GetGroupProperties: (ids) => this._menuGroupProperties(ids),
-      Event: (id, eventId) => {
-        if (eventId !== 'clicked') return null;
-        if (id === MENU_ID_TOGGLE) this.toggleWindow();
-        else if (id === MENU_ID_QUIT) this.quitApp();
-        return null;
+      Event: (id, eventId) => { this._handleEvent(id, eventId); return null; },
+      // Cinnamon's dbusmenu client (and others) send clicks through this
+      // batched form instead of the singular Event/AboutToShow above, never
+      // falling back, so a server that only implements the singular pair
+      // looks completely dead to it: the menu still renders (that's
+      // GetLayout/GetGroupProperties, a separate pair), but every click
+      // hits an undeclared method and is silently dropped.
+      EventGroup: (events) => {
+        (events || []).forEach(([id, eventId]) => this._handleEvent(id, eventId));
+        return [];
       },
       AboutToShow: () => false,
+      AboutToShowGroup: () => [[], []],
     });
 
     this.bus.exportInterface(this.sni, '/StatusNotifierItem', SNI_IFACE);
@@ -202,6 +210,12 @@ class SniTray {
       items.map((item) => ['(ia{sv}av)', [item.id, item.props, []]]),
     ];
     return [this.menuRevision, root];
+  }
+
+  _handleEvent(id, eventId) {
+    if (eventId !== 'clicked') return;
+    if (id === MENU_ID_TOGGLE) this.toggleWindow();
+    else if (id === MENU_ID_QUIT) this.quitApp();
   }
 
   _menuGroupProperties(ids) {

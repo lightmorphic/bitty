@@ -1,7 +1,7 @@
 {
   "name": "bitty",
   "productName": "Bitty",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "VPN-only BitTorrent client. Self-contained AppImage. No traffic ever leaves except through the VPN tunnel.",
   "main": "src/main/main.js",
   "private": true,
