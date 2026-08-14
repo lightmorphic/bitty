@@ -232,15 +232,15 @@
         <td>
           <div class="row-actions">
             <button class="icon-btn" data-action="${t.paused ? 'resume' : 'pause'}" data-hash="${t.infoHash}"
-              aria-label="${t.paused ? 'Resume' : 'Pause'} ${escapeHtml(t.name)}" title="${t.paused ? 'Resume' : 'Pause'}">
+              aria-label="${t.paused ? 'Resume' : 'Pause'} ${escapeHtml(t.name)}" data-tooltip="${t.paused ? 'Resume' : 'Pause'}">
               ${svgIcon(t.paused ? 'resume' : 'pause')}
             </button>
             <button class="icon-btn" data-action="remove" data-hash="${t.infoHash}"
-              aria-label="Remove ${escapeHtml(t.name)} from the list (keeps downloaded files)" title="Remove from list (keeps files)">
+              aria-label="Remove ${escapeHtml(t.name)} from the list (keeps downloaded files)" data-tooltip="Remove from list (keeps files)">
               ${svgIcon('remove')}
             </button>
             <button class="icon-btn ${deleteArmed === t.infoHash ? 'danger-armed' : ''}" data-action="delete" data-hash="${t.infoHash}"
-              aria-label="Delete ${escapeHtml(t.name)} and its downloaded files" title="Delete torrent and files">
+              aria-label="Delete ${escapeHtml(t.name)} and its downloaded files" data-tooltip="Delete torrent and files">
               ${deleteArmed === t.infoHash ? '✓' : svgIcon('trash')}
             </button>
           </div>
@@ -353,7 +353,7 @@
     appVersion.textContent = `v${status.version || '0.0.0'}`;
     updateDot.dataset.state = status.state;
     updateDot.setAttribute('aria-label', UPDATE_TOOLTIPS[status.state] || 'Checking for updates');
-    updateDot.title = UPDATE_TOOLTIPS[status.state] || '';
+    updateDot.setAttribute('data-tooltip', UPDATE_TOOLTIPS[status.state] || 'Checking for updates');
     if (status.state === 'downloading') {
       const offset = RING_CIRCUMFERENCE * (1 - (status.progress || 0));
       ringProgressEl.style.strokeDashoffset = String(offset);
