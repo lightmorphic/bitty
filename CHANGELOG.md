@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.3
+
+- Fixed the tray menu rendering correctly (labels visible, right size) but every click doing
+  nothing. Confirmed by watching the actual D-Bus traffic while clicking: Cinnamon's menu sends
+  clicks through `EventGroup`/`AboutToShowGroup`, a batched pair of methods from the DBusMenu spec,
+  not the singular `Event`/`AboutToShow` pair this app only implemented. Those calls were hitting
+  undeclared methods and being silently dropped, no error, no click, nothing. Both pairs are now
+  implemented and share the same click handling.
+
 ## 0.7.2
 
 - Fixed the tray icon's right-click menu showing as a correctly-sized but completely blank grey
