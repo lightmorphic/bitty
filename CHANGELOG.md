@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.9
+
+- Added a paste button next to the magnet link field, since right-click paste doesn't work there.
+  Click it to paste a magnet link straight in; if the clipboard doesn't hold one, it shows a small
+  "Oops, not a magnet link" tooltip instead of pasting garbage into the field.
+
 ## 0.7.8
 
 - Clicking the update dot now visibly pulses while it checks, rather than jumping straight to the

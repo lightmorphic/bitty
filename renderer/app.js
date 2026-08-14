@@ -19,6 +19,7 @@
   const vpnError = $('vpnError');
 
   const magnetInput = $('magnetInput');
+  const pasteMagnetBtn = $('pasteMagnetBtn');
   const addMagnetBtn = $('addMagnetBtn');
   const chooseTorrentFileBtn = $('chooseTorrentFileBtn');
   const openFolderBtn = $('openFolderBtn');
@@ -167,6 +168,16 @@
     }
   });
   magnetInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addMagnetBtn.click(); });
+
+  pasteMagnetBtn.addEventListener('click', async () => {
+    const text = (await window.bitty.clipboard.readText()).trim();
+    if (!/^magnet:\?/i.test(text)) {
+      if (window.bittyTooltip) window.bittyTooltip.showTransient(pasteMagnetBtn, 'Oops, not a magnet link', 2200);
+      return;
+    }
+    magnetInput.value = text;
+    magnetInput.focus();
+  });
 
   chooseTorrentFileBtn.addEventListener('click', () => {
     const input = document.createElement('input');

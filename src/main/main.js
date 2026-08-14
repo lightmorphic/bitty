@@ -13,7 +13,7 @@ if (process.argv.includes('--bitty-helper')) {
 }
 
 function runApp() {
-  const { app, BrowserWindow, ipcMain, dialog, safeStorage, shell } = require('electron');
+  const { app, BrowserWindow, ipcMain, dialog, safeStorage, shell, clipboard } = require('electron');
   const path = require('path');
   const fs = require('fs');
 
@@ -250,6 +250,8 @@ function runApp() {
   });
 
   ipcMain.handle('shell:open-download-dir', () => shell.openPath(settings.data.downloadDir));
+
+  ipcMain.handle('clipboard:read-text', () => clipboard.readText());
 
   ipcMain.handle('updater:status', () => updater.status);
   ipcMain.handle('updater:check', () => updater.check());
