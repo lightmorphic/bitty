@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.6
+
+- Fixed the sidebar header: the version number and status dot had dropped onto their own line
+  below "Bitty" instead of sitting next to it on the same line.
+
 ## 0.7.5
 
 - The tray icon is now the actual Bitty logo (the checkmark-in-a-ring mark, same as everywhere else

@@ -74,7 +74,7 @@ html, body {
   overflow-y: auto;
 }
 
-.sidebar-brand { display: flex; flex-direction: column; gap: 10px; }
+.sidebar-brand { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 
 .brand {
   display: flex;
