@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.5
+
+- The tray icon is now the actual Bitty logo (the checkmark-in-a-ring mark, same as everywhere else
+  in the app) instead of a plain flat-colour dot. VPN status still shows the same way: the ring and
+  checkmark are green when connected, amber while connecting, red when disconnected, and the
+  black-and-white option in Settings is the same mark as a plain white silhouette at varying
+  opacity rather than a plain circle.
+
 ## 0.7.4
 
 - Fixed a crash on "Quit Bitty" from the tray menu, introduced by 0.7.3's click fix: quitting tore
