@@ -22,6 +22,8 @@
   --warning: #8f6c03;  --warning-bg: #fffbee;
   --info: #1b74bc;     --info-bg: #f0f8fe;
 
+  --tooltip-bg: var(--brand-navy);  --tooltip-fg: #ffffff;
+
   --radius: 0.875rem;
   --panel-radius: 1.375rem;
 }
@@ -38,6 +40,9 @@
     --success: #4bae4f;  --success-bg: #102611;
     --warning: #ffc006;  --warning-bg: #382a01;
     --info: #2295f1;     --info-bg: #072135;
+    /* Bitty renders dark, so a dark tooltip bubble (right for a light app)
+       would nearly vanish against it: invert to a light bubble instead. */
+    --tooltip-bg: #ffffff;  --tooltip-fg: #09090b;
   }
 }
 
@@ -127,11 +132,19 @@ html, body {
 .update-dot[data-state="downloading"] .ring-progress { display: block; }
 .update-dot[data-state="downloading"] .dot-fill { display: none; }
 
-.update-dot .dot-fill { fill: var(--muted-fg); }
+.update-dot .dot-fill { fill: var(--muted-fg); transform-box: fill-box; transform-origin: center; }
 .update-dot[data-state="up-to-date"] .dot-fill { fill: var(--dot-green); }
 .update-dot[data-state="available"] .dot-fill { fill: var(--dot-amber); }
 .update-dot[data-state="ready"] .dot-fill { fill: var(--dot-green); }
 .update-dot[data-state="error"] .dot-fill { fill: var(--dot-red); }
+.update-dot[data-state="checking"] .dot-fill {
+  fill: var(--muted-fg);
+  animation: update-dot-pulse 0.45s ease-in-out 2;
+}
+@keyframes update-dot-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.8); }
+}
 
 .update-dot .dot-icon {
   display: none;
@@ -382,8 +395,8 @@ input:focus-visible, select:focus-visible {
   max-width: 260px;
   padding: 6px 10px;
   border-radius: 8px;
-  background: var(--brand-navy);
-  color: #fff;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-fg);
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.3;
@@ -402,7 +415,7 @@ input:focus-visible, select:focus-visible {
   width: 8px;
   height: 8px;
   margin-left: -4px;
-  background: var(--brand-navy);
+  background: var(--tooltip-bg);
   transform: rotate(45deg);
 }
 .tooltip-bubble[data-placement="top"]::after { bottom: -4px; }

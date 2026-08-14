@@ -27,6 +27,7 @@ class UpdaterController {
     autoUpdater.autoDownload = false;
     autoUpdater.autoInstallOnAppQuit = false;
 
+    autoUpdater.on('checking-for-update', () => this._set({ state: 'checking' }));
     autoUpdater.on('update-available', () => this._set({ state: 'available', error: null }));
     autoUpdater.on('update-not-available', () => this._set({ state: 'up-to-date', error: null }));
     autoUpdater.on('download-progress', (p) => this._set({ state: 'downloading', progress: p.percent / 100 }));

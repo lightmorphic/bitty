@@ -46,8 +46,8 @@
     el.style.left = `${left}px`;
   }
 
-  function show(target) {
-    const text = target.getAttribute('data-tooltip');
+  function show(target, textOverride) {
+    const text = textOverride || target.getAttribute('data-tooltip');
     if (!text) return;
     currentTarget = target;
     const el = ensureBubble();
@@ -63,6 +63,17 @@
     currentTarget = null;
     if (bubble) bubble.classList.remove('is-visible');
   }
+
+  // For feedback that isn't tied to hover, e.g. a result popping up after a
+  // click and fading on its own rather than waiting on mouseleave.
+  function showTransient(target, text, duration) {
+    show(target, text);
+    setTimeout(() => {
+      if (currentTarget === target) hide();
+    }, duration);
+  }
+
+  window.bittyTooltip = { show, hide, showTransient };
 
   // mouseenter/mouseleave don't bubble, but a capture-phase listener on
   // document still receives them for every descendant on the way down, so
