@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0
+
+- The AppImage now starts on a clean machine with nothing installed. It was built with the 2019
+  AppImage launcher, which borrows libfuse2 from the host; libfuse2 is end-of-life and no longer
+  present on current distros, so Bitty refused to start with a bare "AppImages require FUSE"
+  message. It now ships the current launcher, which has fuse3 built in.
+
 ## 0.7.9
 
 - Added a paste button next to the magnet link field, since right-click paste doesn't work there.

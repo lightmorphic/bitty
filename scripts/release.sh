@@ -18,6 +18,7 @@ fi
 
 export GH_TOKEN="${GH_TOKEN:-$(gh auth token)}"
 
+bash scripts/fuse3-runtime.sh
 npx electron-builder --linux AppImage --publish always
 
 cp "dist/Bitty-$VERSION.AppImage" "dist/Bitty.AppImage"
