@@ -47,6 +47,14 @@ const SNI_IFACE = {
     ItemIsMenu: 'b',
     Menu: 'o',
     WindowId: 'i',
+    // Not in the KDE spec, but Ayatana-derived trays (Cinnamon's included)
+    // read these, and asking for a property we haven't declared is what
+    // produced the crash these exist to prevent. See ANY_PROPERTY below.
+    IconAccessibleDesc: 's',
+    AttentionAccessibleDesc: 's',
+    XAyatanaLabel: 's',
+    XAyatanaLabelGuide: 's',
+    XAyatanaOrderingIndex: 'u',
   },
   signals: {
     NewTitle: [],
@@ -78,6 +86,38 @@ const MENU_IFACE = {
     ItemsPropertiesUpdated: ['a(ia{sv})', 'a(ias)'],
   },
 };
+
+// A tray host asking for a property we haven't declared used to take the
+// whole app down. dbus-native answers Properties.Get by looking the name up
+// in the interface description for its type and on the object for its value;
+// an unknown name yields undefined for both, and marshalling undefined
+// throws, uncaught, out of the incoming-message handler.
+//
+// Hosts do ask for properties outside the spec, and which ones varies by
+// desktop, so declaring the known extras (above) isn't a guarantee on its
+// own. These two wrappers make an unknown name answer as an empty string
+// instead: the host gets a harmless reply and the app stays up.
+function withUnknownPropertyFallback(properties) {
+  return new Proxy(properties, {
+    get: (target, key) => (key in target ? target[key] : (isPropertyName(key) ? 's' : undefined)),
+  });
+}
+
+function withEmptyUnknownProperties(impl) {
+  return new Proxy(impl, {
+    get: (target, key) => {
+      if (key in target) return Reflect.get(target, key);
+      return isPropertyName(key) ? '' : undefined;
+    },
+  });
+}
+
+// D-Bus property and method names are CamelCase, so this leaves the object's
+// own machinery (EventEmitter's methods, its private fields, symbols) to
+// resolve normally rather than answering '' for everything absent.
+function isPropertyName(key) {
+  return typeof key === 'string' && /^[A-Z]/.test(key);
+}
 
 const MENU_ID_TOGGLE = 1;
 const MENU_ID_QUIT = 2;
@@ -126,6 +166,11 @@ class SniTray {
       ItemIsMenu: false,
       Menu: '/MenuBar',
       WindowId: 0,
+      IconAccessibleDesc: 'Bitty, VPN not connected',
+      AttentionAccessibleDesc: '',
+      XAyatanaLabel: '',
+      XAyatanaLabelGuide: '',
+      XAyatanaOrderingIndex: 0,
       Activate: () => { this.toggleWindow(); return null; },
       SecondaryActivate: () => { this.toggleWindow(); return null; },
       ContextMenu: () => { this.toggleWindow(); return null; },
@@ -153,8 +198,16 @@ class SniTray {
       AboutToShowGroup: () => [[], []],
     });
 
-    this.bus.exportInterface(this.sni, '/StatusNotifierItem', SNI_IFACE);
-    this.bus.exportInterface(this.menu, '/MenuBar', MENU_IFACE);
+    this.bus.exportInterface(
+      withEmptyUnknownProperties(this.sni),
+      '/StatusNotifierItem',
+      { ...SNI_IFACE, properties: withUnknownPropertyFallback(SNI_IFACE.properties) },
+    );
+    this.bus.exportInterface(
+      withEmptyUnknownProperties(this.menu),
+      '/MenuBar',
+      { ...MENU_IFACE, properties: withUnknownPropertyFallback(MENU_IFACE.properties) },
+    );
 
     const busName = `org.freedesktop.StatusNotifierItem-${process.pid}-1`;
     this.bus.requestName(busName, 0, (err) => {
@@ -285,6 +338,7 @@ class SniTray {
     }
     this.sni.IconName = this.style === 'mono' ? `bitty-tray-mono-${state}` : `bitty-tray-${state}`;
     this.sni.ToolTip = ['', [], 'Bitty', label];
+    this.sni.IconAccessibleDesc = `Bitty, ${label}`;
     if (typeof this.sni.emit === 'function') {
       this.sni.emit('NewIcon');
       this.sni.emit('NewToolTip');

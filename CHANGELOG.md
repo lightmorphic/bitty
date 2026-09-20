@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.2
+
+- Fixed a crash on clicking Connect. The desktop's tray asks the app about itself, and asking
+  about anything Bitty hadn't explicitly listed brought the whole app down with a JavaScript
+  error. Bitty now lists the extra things Cinnamon and similar desktops ask for, and anything
+  else unexpected gets a harmless answer instead of stopping the app.
+
 ## 0.8.1
 
 - Tooltip colours are now written out rather than taken from the theme, so the bubble looks the
