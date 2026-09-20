@@ -27,7 +27,14 @@
   </description>
 
   <launchable type="desktop-id">bitty.desktop</launchable>
-  <url type="homepage">https://github.com/lightmorphic/bitty</url>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://bitty.lightmorphic.com/assets/screenshot-main.png</image>
+      <caption>The VPN status panel alongside the torrent list</caption>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://bitty.lightmorphic.com/</url>
   <url type="bugtracker">https://github.com/lightmorphic/bitty/issues</url>
 
   <categories>
@@ -38,6 +45,6 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
-    <release version="0.8.0" date="2026-09-20"/>
+    <release version="0.8.1" date="2026-09-20"/>
   </releases>
 </component>

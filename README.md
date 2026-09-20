@@ -45,8 +45,8 @@ small networking helper process runs elevated, and only for as long as the app i
 ## Installing / running
 
 ```bash
-chmod +x Bitty-0.8.0.AppImage
-./Bitty-0.8.0.AppImage
+chmod +x Bitty-0.8.1.AppImage
+./Bitty-0.8.1.AppImage
 ```
 
 No install step, no system-wide changes. OpenVPN is bundled inside the AppImage, so you don't

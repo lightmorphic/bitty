@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.1
+
+- Tooltip colours are now written out rather than taken from the theme, so the bubble looks the
+  same on every desktop instead of following whatever light or dark setting the machine has.
+- The app catalogue entry now carries a screenshot, and sharing a link to the website shows a
+  proper preview image instead of just the icon.
+
 ## 0.8.0
 
 - The AppImage now starts on a clean machine with nothing installed. It was built with the 2019
