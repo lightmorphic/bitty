@@ -6,8 +6,12 @@
 (function () {
   const GAP = 8;
   const MARGIN = 8;
+  // Hovering shouldn't fire a tooltip the instant the pointer crosses a
+  // button on its way somewhere else, so wait for the hover to settle.
+  const HOVER_DELAY = 400;
   let bubble = null;
   let currentTarget = null;
+  let hoverTimer = null;
 
   function ensureBubble() {
     if (bubble) return bubble;
@@ -59,7 +63,15 @@
     });
   }
 
+  // Hover goes through the delay; focus and transient calls show at once,
+  // since those are deliberate rather than a pointer passing over.
+  function showAfterDelay(target) {
+    clearTimeout(hoverTimer);
+    hoverTimer = setTimeout(() => show(target), HOVER_DELAY);
+  }
+
   function hide() {
+    clearTimeout(hoverTimer);
     currentTarget = null;
     if (bubble) bubble.classList.remove('is-visible');
   }
@@ -80,11 +92,11 @@
   // this delegates without wiring a listener onto each button individually.
   document.addEventListener('mouseenter', (e) => {
     const t = e.target.closest && e.target.closest('[data-tooltip]');
-    if (t) show(t);
+    if (t) showAfterDelay(t);
   }, true);
   document.addEventListener('mouseleave', (e) => {
     const t = e.target.closest && e.target.closest('[data-tooltip]');
-    if (t && t === currentTarget) hide();
+    if (t && (t === currentTarget || hoverTimer)) hide();
   }, true);
   document.addEventListener('focusin', (e) => {
     const t = e.target.closest && e.target.closest('[data-tooltip]');

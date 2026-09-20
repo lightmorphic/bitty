@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>cx.charlie.bitty</id>
+  <name>Bitty</name>
+  <summary>VPN-only BitTorrent client</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <developer id="cx.charlie">
+    <name>Charlie</name>
+  </developer>
+
+  <description>
+    <p>
+      Bitty is a BitTorrent client that cannot torrent without a VPN. The torrent engine runs
+      inside an isolated network namespace with a firewall that allows only the VPN tunnel and
+      the one server address needed to establish it. There is no default route out, so if the
+      VPN drops the engine is stopped and the firewall would block it regardless.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Add torrents by magnet link or torrent file, pause, resume, remove or delete with files</li>
+      <li>Connects through any OpenVPN configuration, automatically on launch</li>
+      <li>One speed cap for the whole app, manual or a percentage of your measured line speed</li>
+      <li>Minimises to the tray, with the icon colour following VPN status</li>
+      <li>Tears down the namespace, firewall rules and VPN process on quit</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">bitty.desktop</launchable>
+  <url type="homepage">https://github.com/lightmorphic/bitty</url>
+  <url type="bugtracker">https://github.com/lightmorphic/bitty/issues</url>
+
+  <categories>
+    <category>Network</category>
+    <category>FileTransfer</category>
+  </categories>
+
+  <content_rating type="oars-1.1"/>
+
+  <releases>
+    <release version="0.8.0" date="2026-09-20"/>
+  </releases>
+</component>

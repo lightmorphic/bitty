@@ -9,7 +9,7 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "start": "electron .",
-    "build": "bash scripts/fuse3-runtime.sh && electron-builder --linux AppImage",
+    "build": "bash scripts/bundle-openvpn.sh && electron-builder --linux AppImage && bash scripts/fuse3-appimage.sh",
     "release": "bash scripts/release.sh"
   },
   "dependencies": {
@@ -48,6 +48,18 @@
       "provider": "github",
       "owner": "lightmorphic",
       "repo": "bitty"
-    }
+    },
+    "extraFiles": [
+      {
+        "from": "build/metainfo",
+        "to": "usr/share/metainfo"
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "vendor/openvpn",
+        "to": "openvpn"
+      }
+    ]
   }
 }

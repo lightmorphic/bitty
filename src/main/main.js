@@ -235,7 +235,7 @@ function runApp() {
   ipcMain.handle('vpn:status', () => vpn.status);
 
   ipcMain.handle('torrents:add-magnet', async (_e, magnet) => torrents.addMagnet(magnet));
-  ipcMain.handle('torrents:add-file', async (_e, { name, base64 }) => torrents.addTorrentFile(base64));
+  ipcMain.handle('torrents:add-file', async (_e, { base64 }) => torrents.addTorrentFile(base64));
   ipcMain.handle('torrents:pause', async (_e, infoHash) => torrents.pause(infoHash));
   ipcMain.handle('torrents:resume', async (_e, infoHash) => torrents.resume(infoHash));
   ipcMain.handle('torrents:remove', async (_e, { infoHash, deleteFiles }) => torrents.remove(infoHash, deleteFiles));

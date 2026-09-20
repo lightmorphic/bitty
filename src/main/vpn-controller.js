@@ -24,7 +24,7 @@ class VpnController {
 
   _launchHelper() {
     return new Promise((resolve, reject) => {
-      const { execPath, mainJsPath, workerScriptPath } = this.runtimePaths;
+      const { execPath, mainJsPath, workerScriptPath, openvpnDir } = this.runtimePaths;
       const args = [
         '/usr/bin/env', 'ELECTRON_RUN_AS_NODE=1',
         execPath, mainJsPath,
@@ -36,6 +36,7 @@ class VpnController {
         `--helper-socket=${paths.helperSocket}`,
         `--worker-socket=${paths.workerSocket}`,
         `--worker-script=${workerScriptPath}`,
+        `--openvpn-dir=${openvpnDir}`,
       ];
       const proc = spawn('pkexec', args, { stdio: ['ignore', 'inherit', 'inherit'] });
       this.helperProc = proc;

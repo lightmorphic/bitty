@@ -6,6 +6,13 @@
   AppImage launcher, which borrows libfuse2 from the host; libfuse2 is end-of-life and no longer
   present on current distros, so Bitty refused to start with a bare "AppImages require FUSE"
   message. It now ships the current launcher, which has fuse3 built in.
+- OpenVPN is now bundled inside the AppImage. Bitty needs it to build the tunnel, so having to
+  install it separately made a nonsense of shipping one self-contained file. The bundled copy is
+  used in preference to anything on the system.
+- Added AppStream metadata, so software centres and AppImage catalogues show a proper name,
+  description and categories rather than a bare filename.
+- Tooltips now wait 400ms before appearing, so a pointer crossing a button on its way somewhere
+  else no longer flashes one up. Clicking a button still shows its result straight away.
 
 ## 0.7.9
 

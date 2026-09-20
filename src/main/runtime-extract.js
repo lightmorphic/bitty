@@ -18,6 +18,7 @@ function ensureExtractedRuntime(app) {
       execPath: process.execPath,
       mainJsPath: path.join(__dirname, 'main.js'),
       workerScriptPath: path.join(__dirname, '..', 'worker', 'torrent-worker.js'),
+      openvpnDir: path.join(__dirname, '..', '..', 'vendor', 'openvpn'),
     };
   }
 
@@ -40,6 +41,7 @@ function ensureExtractedRuntime(app) {
     execPath: path.join(squashDir, 'bitty'),
     mainJsPath: path.join(squashDir, 'resources', 'app.asar', 'src', 'main', 'main.js'),
     workerScriptPath: path.join(squashDir, 'resources', 'app.asar', 'src', 'worker', 'torrent-worker.js'),
+    openvpnDir: path.join(squashDir, 'resources', 'openvpn'),
   };
 }
 

@@ -189,7 +189,7 @@
       const buf = await file.arrayBuffer();
       const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
       try {
-        await window.bitty.torrents.addFile(file.name, base64);
+        await window.bitty.torrents.addFile(base64);
       } catch (e) {
         torrentError.textContent = cleanErrorMessage(e);
       }

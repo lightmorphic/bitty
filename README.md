@@ -49,9 +49,9 @@ chmod +x Bitty-0.8.0.AppImage
 ./Bitty-0.8.0.AppImage
 ```
 
-No install step, no system-wide changes. Needs these already on your system (all standard on any
-Debian/Ubuntu-family desktop): `openvpn`, `iproute2` (`ip`), `nftables` (`nft`), `iptables`,
-`polkit` (`pkexec`), `util-linux` (`setpriv`).
+No install step, no system-wide changes. OpenVPN is bundled inside the AppImage, so you don't
+need to install it. The rest are already present on any Debian/Ubuntu-family desktop: `iproute2`
+(`ip`), `nftables` (`nft`), `iptables`, `polkit` (`pkexec`), `util-linux` (`setpriv`).
 
 Only one instance runs at a time. Launching it again while it's already open (including hidden in
 the tray) just brings the existing window forward rather than starting a second copy.

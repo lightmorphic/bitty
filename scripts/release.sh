@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # Builds and publishes a GitHub release for the current package.json version.
+#
+# The upload is done here with gh rather than by electron-builder's --publish,
+# because the AppImage gets its launcher swapped after electron-builder has
+# finished with it (see fuse3-appimage.sh) and only the finished file, and the
+# latest-linux.yml written against it, should ever reach the release.
+#
 # Every release carries two AppImage copies, by design:
 #   Bitty-<version>.AppImage   the pinned, versioned copy (also what
 #                              electron-updater's latest-linux.yml points at)
@@ -18,13 +24,24 @@ fi
 
 export GH_TOKEN="${GH_TOKEN:-$(gh auth token)}"
 
-bash scripts/fuse3-runtime.sh
-npx electron-builder --linux AppImage --publish always
+bash scripts/bundle-openvpn.sh
+npx electron-builder --linux AppImage --publish never
+bash scripts/fuse3-appimage.sh
 
 cp "dist/Bitty-$VERSION.AppImage" "dist/Bitty.AppImage"
-gh release upload "$TAG" "dist/Bitty.AppImage" --clobber
 
 NOTES=$(awk "/^## $VERSION/{flag=1;next}/^## /{flag=0}flag" CHANGELOG.md)
-gh release edit "$TAG" --draft=false --title "$VERSION" --notes "$NOTES"
+
+if gh release view "$TAG" >/dev/null 2>&1; then
+  gh release edit "$TAG" --draft=false --title "$VERSION" --notes "$NOTES"
+else
+  gh release create "$TAG" --title "$VERSION" --notes "$NOTES"
+fi
+
+gh release upload "$TAG" \
+  "dist/Bitty-$VERSION.AppImage" \
+  "dist/Bitty.AppImage" \
+  dist/latest-linux.yml \
+  --clobber
 
 echo "Released $TAG: https://github.com/lightmorphic/bitty/releases/tag/$TAG"

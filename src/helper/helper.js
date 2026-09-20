@@ -150,7 +150,8 @@ async function startOpenvpn({ ovpnText, username, password }) {
   // up the tunnel interface, but NOT arbitrary user-defined up/down/plugin
   // scripts (that needs level 2+), so a malicious .ovpn file still can't
   // get code execution out of us, even running as root as we do here.
-  const args = ['openvpn', '--config', configPath, '--script-security', '1', '--verb', '3', '--auth-nocache'];
+  const { bin: openvpnBin, env: openvpnEnv } = resolveOpenvpn();
+  const args = [openvpnBin, '--config', configPath, '--script-security', '1', '--verb', '3', '--auth-nocache'];
   if (username) {
     const authPath = path.join(tmpDir, 'auth.txt');
     fs.writeFileSync(authPath, `${username}\n${password || ''}\n`, { mode: 0o600 });
@@ -159,7 +160,10 @@ async function startOpenvpn({ ovpnText, username, password }) {
   }
 
   state.vpn = { status: 'connecting', ip: vpnIp, connectedSince: null, lastError: null };
-  const proc = spawn('ip', ['netns', 'exec', netnsName, ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const proc = spawn('ip', ['netns', 'exec', netnsName, ...args], {
+    env: { ...process.env, ...openvpnEnv },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
   state.vpnProc = proc;
 
   proc.stdout.on('data', (chunk) => {
@@ -191,6 +195,20 @@ async function startOpenvpn({ ovpnText, username, password }) {
   });
 
   state.lastConnectArgs = { ovpnText, username, password };
+}
+
+// Prefer the copy shipped inside the AppImage, so nothing has to be installed
+// first, and point it at its own bundled libraries. If that copy is missing
+// (a dev checkout that hasn't run scripts/bundle-openvpn.sh), fall back to
+// whatever openvpn is on PATH rather than failing outright.
+function resolveOpenvpn() {
+  const dir = global.bittyHelperArgs && global.bittyHelperArgs.openvpnDir;
+  const bin = dir && path.join(dir, 'openvpn');
+  if (bin && fs.existsSync(bin)) {
+    return { bin, env: { LD_LIBRARY_PATH: path.join(dir, 'lib') } };
+  }
+  log('no bundled openvpn at', bin, '- falling back to openvpn on PATH');
+  return { bin: 'openvpn', env: {} };
 }
 
 function wipeAuthFile() {
@@ -282,7 +300,6 @@ function teardownAll() {
   teardownNetwork();
 }
 
-let server;
 const clients = new Set();
 
 function broadcastStatus() {
@@ -347,14 +364,15 @@ function start(argv) {
   const helperSocket = arg('helper-socket');
   const workerSocket = arg('worker-socket');
   const workerScript = arg('worker-script');
+  const openvpnDir = arg('openvpn-dir');
 
-  global.bittyHelperArgs = { uid, gid, home, workerSocket, workerScript };
+  global.bittyHelperArgs = { uid, gid, home, workerSocket, workerScript, openvpnDir };
 
   process.on('SIGTERM', () => { teardownAll(); process.exit(0); });
   process.on('SIGINT', () => { teardownAll(); process.exit(0); });
   process.on('uncaughtException', (e) => { log('fatal:', e.stack || e.message); teardownAll(); process.exit(1); });
 
-  server = createServer(helperSocket, handleMessage, { uid, gid });
+  createServer(helperSocket, handleMessage, { uid, gid });
   if (parentPid) watchParent(parentPid);
   log('helper listening on', helperSocket, 'pid', process.pid);
 }

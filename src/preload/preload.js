@@ -25,7 +25,7 @@ contextBridge.exposeInMainWorld('bitty', {
   },
   torrents: {
     addMagnet: (magnet) => invoke('torrents:add-magnet', magnet),
-    addFile: (name, base64) => invoke('torrents:add-file', { name, base64 }),
+    addFile: (base64) => invoke('torrents:add-file', { base64 }),
     pause: (infoHash) => invoke('torrents:pause', infoHash),
     resume: (infoHash) => invoke('torrents:resume', infoHash),
     remove: (infoHash, deleteFiles) => invoke('torrents:remove', { infoHash, deleteFiles }),
