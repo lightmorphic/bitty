@@ -179,6 +179,19 @@
     magnetInput.focus();
   });
 
+  // Feeding a whole file to String.fromCharCode as spread arguments blows the
+  // argument limit and throws: one call ends up with an argument per byte, so
+  // a real .torrent (Ubuntu's desktop ISO is around half a megabyte) is
+  // hundreds of thousands of them. Chunking keeps every call small enough.
+  function toBase64(bytes) {
+    const CHUNK = 0x8000;
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+    }
+    return btoa(binary);
+  }
+
   chooseTorrentFileBtn.addEventListener('click', () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -186,9 +199,8 @@
     input.addEventListener('change', async () => {
       const file = input.files[0];
       if (!file) return;
-      const buf = await file.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
       try {
+        const base64 = toBase64(new Uint8Array(await file.arrayBuffer()));
         await window.bitty.torrents.addFile(base64);
       } catch (e) {
         torrentError.textContent = cleanErrorMessage(e);

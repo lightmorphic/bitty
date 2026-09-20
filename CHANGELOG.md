@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.3
+
+- Fixed adding a torrent from a .torrent file. Anything bigger than about 64KB silently did
+  nothing at all: the file was being converted for sending in a way that fell over on larger
+  files, and the failure happened outside the part that reports errors, so nothing was shown
+  either. Real .torrent files are routinely larger than that, Ubuntu's desktop ISO among them.
+  Magnet links were never affected.
+
 ## 0.8.2
 
 - Fixed a crash on clicking Connect. The desktop's tray asks the app about itself, and asking
