@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.8.4
+
+- Fixed torrents never starting after a slow password entry. Bitty waited only ten seconds for
+  the password box before giving up; it then started a second copy of its privileged helper,
+  which took over from the first. The VPN kept running under the first copy while the app talked
+  to the second, and nothing downloaded. It now waits for as long as the password box is open.
+- New icon: a solid disc with a dark tick, readable at tray size. The tray disc is green, amber or
+  red for the VPN status; the app icon and website use the yellow version.
+- The window now carries its own icon and is tied to its desktop entry, so the taskbar and
+  alt-tab show Bitty's icon instead of a generic cog on Cinnamon.
+- The torrent engine now logs tracker failures, storage errors and peer activity, where before
+  a torrent that could never start was indistinguishable from one nobody was sharing.
+
 ## 0.8.3
 
 - Fixed adding a torrent from a .torrent file. Anything bigger than about 64KB silently did

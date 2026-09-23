@@ -50,8 +50,22 @@ class VpnController {
         }
       });
 
+      // pkexec asks for a password before the helper even starts, so the
+      // socket can't appear until that's answered, however long it takes.
+      // This used to give up after 10 seconds; anyone slower at typing got
+      // a failed connect, the next attempt spawned a second helper (polkit
+      // had cached the password by then, so silently), and that second one
+      // took over the socket from the first. The app then talked to a
+      // helper with no VPN while the VPN and torrent worker ran under the
+      // first, and nothing downloaded. Wait for as long as pkexec is alive.
       const client = new Client(paths.helperSocket);
-      client.connect(40, 250).then(() => {
+      const waitForSocket = () => client.connect(0, 0).catch(() => {
+        if (proc.exitCode !== null || proc.signalCode !== null) {
+          throw new Error('VPN helper exited before it was ready');
+        }
+        return new Promise((r) => setTimeout(r, 250)).then(waitForSocket);
+      });
+      waitForSocket().then(() => {
         this.client = client;
         this._connectedOnce = true;
         client.on('event', (msg) => {

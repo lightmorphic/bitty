@@ -108,6 +108,9 @@ function runApp() {
       minWidth: 860,
       minHeight: 560,
       autoHideMenuBar: true,
+      // Without this the taskbar and alt-tab show the desktop's generic
+      // application icon; Cinnamon's is a cog.
+      icon: path.join(__dirname, '..', '..', 'renderer', 'assets', 'icon.png'),
       webPreferences: {
         preload: path.join(__dirname, '..', 'preload', 'preload.js'),
         contextIsolation: true,

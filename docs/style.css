@@ -199,8 +199,8 @@ code {
 .hero-diagram .ring-mid { stroke-dasharray: 4 8; }
 .hero-diagram .blocked { stroke: var(--muted-fg); stroke-width: 3; stroke-linecap: round; opacity: 0.5; }
 .hero-diagram .tunnel { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
-.hero-diagram .core { fill: var(--accent-container); stroke: var(--accent); stroke-width: 2; }
-.hero-diagram .core-check { stroke: var(--accent); }
+.hero-diagram .core { fill: var(--accent); stroke: none; }
+.hero-diagram .core-check { stroke: #111827; }
 
 /* ---------- how it works ---------- */
 

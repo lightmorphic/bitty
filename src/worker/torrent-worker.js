@@ -41,6 +41,30 @@ async function main() {
 
   const client = new WebTorrent({ maxConns: 55 });
   let downloadDir = process.env.HOME + '/Downloads';
+
+  // The engine reports tracker failures, storage errors and the like as
+  // events, and with nothing listening they vanished: a torrent that could
+  // never start looked identical to one with no one sharing it. Log them to
+  // stderr, which the helper passes through to the app's own output.
+  const log = (...a) => process.stderr.write('[bitty-worker] ' + a.join(' ') + '\n');
+  client.on('error', (e) => log('client error:', e.message));
+  client.on('warning', (e) => log('client warning:', e.message));
+  client.on('torrent', (t) => log('ready:', t.name, t.length, 'bytes'));
+  function watchTorrent(t) {
+    const id = () => (t.name || t.infoHash || '?').slice(0, 40);
+    t.on('warning', (e) => log('torrent warning', id() + ':', e.message));
+    t.on('error', (e) => log('torrent error', id() + ':', e.message));
+    t.on('noPeers', (src) => log('no peers from', src, 'for', id()));
+    let wires = 0;
+    t.on('wire', () => { if (++wires <= 3 || wires % 25 === 0) log('peer connected to', id(), '(' + wires + ' so far)'); });
+  }
+  setInterval(() => {
+    for (const t of client.torrents) {
+      log('status', (t.name || t.infoHash).slice(0, 40), 'peers=' + t.numPeers,
+        'down=' + Math.round(t.downloadSpeed / 1024) + 'KB/s', 'paused=' + !!t.paused,
+        'progress=' + (t.progress * 100).toFixed(1) + '%');
+    }
+  }, 30000);
   let persisted = loadPersisted();
 
   // Throttling: either a flat manual cap, or "auto" mode which limits to a
@@ -135,6 +159,8 @@ async function main() {
       // and progress once metadata does arrive.
       let responded = false;
       const t = client.add(idOrMagnetOrBuffer, { path: downloadDir, ...opts });
+      watchTorrent(t);
+      log('added', t.infoHash || '(parsing)', 'to', downloadDir, opts.startPaused ? '(paused)' : '');
       if (opts.startPaused) { t.paused = true; }
       t.once('infoHash', () => {
         persistEntry(t);
